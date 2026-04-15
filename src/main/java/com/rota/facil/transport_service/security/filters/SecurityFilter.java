@@ -1,6 +1,6 @@
 package com.rota.facil.transport_service.security.filters;
 
-import com.rota.facil.transport_service.http.dto.request.AuthGatewayRequest;
+import com.rota.facil.transport_service.http.dto.request.CurrentUser;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -30,8 +30,8 @@ public class SecurityFilter extends OncePerRequestFilter {
         }
 
         role = "ROLE_" + role;
-        AuthGatewayRequest authGatewayRequest = new AuthGatewayRequest(UUID.fromString(id), UUID.fromString(prefectureId), email, role);
-        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(authGatewayRequest, null, List.of(new SimpleGrantedAuthority(authGatewayRequest.role())));
+        CurrentUser currentUser = new CurrentUser(UUID.fromString(id), UUID.fromString(prefectureId), email, role);
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(currentUser, null, List.of(new SimpleGrantedAuthority(currentUser.role())));
         SecurityContextHolder.getContext().setAuthentication(authenticationToken);
         filterChain.doFilter(request, response);
     }
