@@ -1,6 +1,6 @@
 package com.rota.facil.transport_service.security.filters;
 
-import com.rota.facil.transport_service.http.dto.request.CurrentUser;
+import com.rota.facil.transport_service.http.dto.request.user.CurrentUser;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

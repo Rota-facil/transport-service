@@ -1,4 +1,4 @@
-package com.rota.facil.transport_service.http.dto.request;
+package com.rota.facil.transport_service.http.dto.request.user;
 
 import java.util.UUID;
 

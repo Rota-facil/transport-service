@@ -24,6 +24,10 @@ public class TripUserEntity {
     private UserEntity user;
 
     @ManyToOne
+    @JoinColumn(name = "trip_id")
+    private TripEntity trip;
+
+    @ManyToOne
     @JoinColumn(name = "institution_id")
     private InstitutionEntity institution;
 
