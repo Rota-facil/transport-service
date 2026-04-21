@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS users_tb (
+    user_id UUID PRIMARY KEY,
+    prefecture_id UUID NOT NULL,
+    name VARCHAR(120) NOT NULL,
+    email VARCHAR(120) NOT NULL,
+    score DOUBLE PRECISION NOT NULL DEFAULT 5,
+    role VARCHAR(20) NOT NULL
+);
