@@ -28,7 +28,7 @@ public class RabbitAuthEventConsumer {
     public void handlerUpdateUser(UserEventReceive updateUser) {
         try {
             UserEntity userEntity = userEventMapper.map(updateUser);
-            userService.update(userEntity);
+//            userService.update(userEntity);
         } catch (Exception e) {
             e.printStackTrace();
         }
