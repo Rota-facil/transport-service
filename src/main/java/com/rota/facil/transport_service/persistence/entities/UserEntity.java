@@ -30,4 +30,11 @@ public class UserEntity {
 
     @Enumerated(EnumType.STRING)
     private Role role;
+
+    public void update(UserEntity userEntity) {
+        if (userEntity.getPrefectureId() != null) this.prefectureId = userEntity.getPrefectureId();
+        if (userEntity.getName() != null) this.name = userEntity.getName();
+        if (userEntity.getEmail() != null) this.email = userEntity.getEmail();
+        if (userEntity.getScore() != null) this.score = userEntity.getScore();
+    }
 }

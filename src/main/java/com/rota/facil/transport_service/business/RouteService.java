@@ -1,0 +1,102 @@
+package com.rota.facil.transport_service.business;
+
+import com.rota.facil.transport_service.domain.exceptions.BoardPointNotFoundException;
+import com.rota.facil.transport_service.domain.exceptions.InstitutionNotFoundException;
+import com.rota.facil.transport_service.domain.exceptions.RouteNotFoundException;
+import com.rota.facil.transport_service.http.dto.request.route.CreateBoardPointRouteRequestDTO;
+import com.rota.facil.transport_service.http.dto.request.route.CreateRouteRequestDTO;
+import com.rota.facil.transport_service.http.dto.response.route.RouteResponseDTO;
+import com.rota.facil.transport_service.persistence.entities.BoardPointEntity;
+import com.rota.facil.transport_service.persistence.entities.BoardPointRouteEntity;
+import com.rota.facil.transport_service.persistence.entities.InstitutionEntity;
+import com.rota.facil.transport_service.persistence.entities.RouteEntity;
+import com.rota.facil.transport_service.persistence.mappers.RouteMapper;
+import com.rota.facil.transport_service.persistence.repositories.BoardPointRepository;
+import com.rota.facil.transport_service.persistence.repositories.InstitutionRepository;
+import com.rota.facil.transport_service.persistence.repositories.RouteRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class RouteService {
+    private final RouteRepository routeRepository;
+    private final InstitutionRepository institutionRepository;
+    private final BoardPointRepository boardPointRepository;
+    private final RouteMapper routeMapper;
+
+    public RouteResponseDTO register(CreateRouteRequestDTO request) {
+        Set<InstitutionEntity> institutionsFound = institutionRepository.findAllSetById(request.institutionsIds());
+
+        if (institutionsFound.size() != request.institutionsIds().size()) throw new InstitutionNotFoundException("Erro ao encontrar instituições selecionadas. Selecione apenas instituições existentes");
+
+        RouteEntity preSaved = routeMapper.map(request);
+        preSaved.setInstitutions(institutionsFound);
+
+
+        return routeMapper.map(routeRepository.save(preSaved));
+    }
+
+    public RouteResponseDTO fetch(UUID routeId) {
+        return routeMapper.map(this.fetchEntity(routeId));
+    }
+
+    public List<RouteResponseDTO> list() {
+        return routeRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"))
+                .stream()
+                .map(routeMapper::map)
+                .toList();
+    }
+
+    public RouteResponseDTO addBoardPoints(UUID routeId, List<CreateBoardPointRouteRequestDTO> request) {
+        RouteEntity routeFound = this.fetchEntity(routeId);
+
+        List<UUID> boardPointsIds = request.stream().map(CreateBoardPointRouteRequestDTO::boardPointId).toList();
+
+        List<BoardPointEntity> boardPointsFound = boardPointRepository.findAllById(boardPointsIds);
+
+        Map<UUID, CreateBoardPointRouteRequestDTO> boardPointsRequestMap = request.stream().collect(Collectors.toMap(
+                CreateBoardPointRouteRequestDTO::boardPointId,
+                boardPoint -> boardPoint
+        ));
+
+        Map<UUID, BoardPointEntity> boardPointsFoundMap = boardPointsFound.stream()
+                .collect(Collectors.toMap(
+                        com.rota.facil.transport_service.persistence.entities.BoardPointEntity::getId,
+                        boardPoint -> boardPoint
+                ));
+
+        if (boardPointsIds.size() != boardPointsFoundMap.size()) throw new BoardPointNotFoundException("Erro ao encontrar pontos de embarque selecionadas. Selecione apenas ponstos de embarque existentes");
+
+        List<BoardPointRouteEntity> boardPointRoutes = new ArrayList<>();
+
+        for (UUID boardPointId : boardPointsIds) {
+            BoardPointEntity boardPointFoundMap = boardPointsFoundMap.get(boardPointId);
+            CreateBoardPointRouteRequestDTO boardPointFoundRequest = boardPointsRequestMap.get(boardPointId);
+
+            boardPointRoutes.add(
+                    BoardPointRouteEntity.builder()
+                            .route(routeFound)
+                            .boardPoint(boardPointFoundMap)
+                            .boardTimeGoing(boardPointFoundRequest.boardTimeGoing())
+                            .boardTimeFinish(boardPointFoundRequest.boardTimeFinish())
+                            .build()
+            );
+        }
+
+        if (routeFound.getBoardPoints() == null) routeFound.setBoardPoints(new ArrayList<>());
+
+        routeFound.getBoardPoints().addAll(boardPointRoutes);
+
+        return routeMapper.map(routeRepository.save(routeFound));
+    }
+
+    private RouteEntity fetchEntity(UUID routeId) {
+        return routeRepository.findById(routeId)
+                .orElseThrow(RouteNotFoundException::new);
+    }
+}

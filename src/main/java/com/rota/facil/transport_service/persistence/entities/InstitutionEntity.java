@@ -22,4 +22,10 @@ public class InstitutionEntity {
     private String latitude;
 
     private String longitude;
+
+    public void update(InstitutionEntity institutionEntity) {
+        if (institutionEntity.getName() != null) this.name = institutionEntity.getName();
+        if (institutionEntity.getLatitude() != null) this.latitude = institutionEntity.getLatitude();
+        if (institutionEntity.getLongitude() != null) this.longitude = institutionEntity.getLongitude();
+    }
 }

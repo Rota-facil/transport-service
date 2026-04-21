@@ -21,4 +21,10 @@ public class BoardPointEntity {
     private String latitude;
 
     private String longitude;
+
+    public void update(BoardPointEntity boardPointEntity) {
+        if (boardPointEntity.getName() != null) this.name = boardPointEntity.getName();
+        if (boardPointEntity.getLatitude() != null) this.latitude = boardPointEntity.getLatitude();
+        if (boardPointEntity.getLongitude() != null) this.longitude = boardPointEntity.getLongitude();
+    }
 }

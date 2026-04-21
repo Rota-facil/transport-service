@@ -9,8 +9,7 @@ import java.util.UUID;
 @Builder
 @Entity
 @Table(name = "board_points_routes_tb")
-@Getter
-@Setter
+@Getter @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class BoardPointRouteEntity {
@@ -18,6 +17,10 @@ public class BoardPointRouteEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "board_point_route_id")
     private UUID id;
+
+    @ManyToOne
+    @JoinColumn(name = "board_point_id")
+    private BoardPointEntity boardPoint;
 
     @ManyToOne
     @JoinColumn(name = "route_id")

@@ -1,7 +1,7 @@
 package com.rota.facil.transport_service.messaging.mappers;
 
 import com.rota.facil.transport_service.domain.enums.ActionType;
-import com.rota.facil.transport_service.http.dto.request.CurrentUser;
+import com.rota.facil.transport_service.http.dto.request.user.CurrentUser;
 import com.rota.facil.transport_service.messaging.dto.send.RouteEventSend;
 import com.rota.facil.transport_service.persistence.entities.RouteEntity;
 import org.mapstruct.Builder;

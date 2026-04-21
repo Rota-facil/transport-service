@@ -22,7 +22,7 @@ public class TripStatusEntity {
     @Column(name = "trip_status_id")
     private UUID id;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "trip_id")
     private TripEntity trip;
 
