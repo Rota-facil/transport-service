@@ -51,4 +51,7 @@ public class RouteEntity {
 
     @OneToMany(mappedBy = "route", cascade = CascadeType.ALL)
     private List<BoardPointRouteEntity> boardPoints;
+
+    @OneToOne(mappedBy = "route", cascade = CascadeType.ALL)
+    private RouteRecurringEntity recurring;
 }

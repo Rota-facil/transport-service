@@ -18,7 +18,7 @@ import java.util.UUID;
 public class RouteController {
     private final RouteService routeService;
 
-    @PostMapping
+    @PostMapping("/register")
     public ResponseEntity<RouteResponseDTO> createRoute(@Valid @RequestBody CreateRouteRequestDTO request) {
         return ResponseEntity.ok(routeService.register(request));
     }
@@ -41,6 +41,4 @@ public class RouteController {
         return ResponseEntity.ok(routeService.list());
     }
 
-//    @PutMapping
-//    @DeleteMapping
 }

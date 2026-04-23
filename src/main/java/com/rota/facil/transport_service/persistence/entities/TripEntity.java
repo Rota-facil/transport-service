@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -35,7 +35,7 @@ public class TripEntity {
     @Builder.Default
     @CreationTimestamp
     @Column(name = "created_at")
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDate createdAt = LocalDate.now();
 
     @OneToMany(mappedBy = "trip", cascade = CascadeType.ALL)
     private List<TripStatusEntity> tripStatus;

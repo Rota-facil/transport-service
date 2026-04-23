@@ -19,7 +19,7 @@ import java.util.UUID;
 public class BusController {
     private final BusService busService;
 
-    @PostMapping
+    @PostMapping("/register")
     public ResponseEntity<BusResponseDTO> createBus(
             @Valid @RequestBody CreateBusRequestDTO request,
             @AuthenticationPrincipal CurrentUser currentUser
