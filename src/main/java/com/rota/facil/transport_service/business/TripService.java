@@ -1,6 +1,10 @@
 package com.rota.facil.transport_service.business;
 
+import com.rota.facil.transport_service.domain.enums.Delay;
+import com.rota.facil.transport_service.domain.enums.Progress;
+import com.rota.facil.transport_service.domain.enums.Role;
 import com.rota.facil.transport_service.domain.exceptions.*;
+import com.rota.facil.transport_service.http.dto.request.trip.CancelTripRequestDTO;
 import com.rota.facil.transport_service.http.dto.request.trip.CreateTripRequestDTO;
 import com.rota.facil.transport_service.http.dto.request.trip.JoinUserInTrip;
 import com.rota.facil.transport_service.http.dto.request.tripUser.TripUserResponseDTO;
@@ -12,10 +16,14 @@ import com.rota.facil.transport_service.persistence.mappers.TripMapper;
 import com.rota.facil.transport_service.persistence.mappers.TripUserMapper;
 import com.rota.facil.transport_service.persistence.repositories.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -36,6 +44,11 @@ public class TripService {
     private final TripUserMapper tripUserMapper;
     private final UserRepository userRepository;
 
+    @Value("${init.trip.before.minutes}")
+    private Long INIT_TRIP_BEFORE_MINUTES;
+
+    @Value("${init.trip.after.minutes}")
+    private Long INIT_TRIP_AFTER_MINUTES;
 
     @Transactional
     public TripResponseDTO register(CreateTripRequestDTO request) {
@@ -81,6 +94,12 @@ public class TripService {
 
         TripEntity tripFound = this.fetchEntity(tripId);
 
+        BusEntity bus = tripFound.getBus();
+
+        int passengers = tripUserRepository.countPassengersByTripId(tripId) + 1;
+
+        if (passengers > bus.getCapacity()) throw new MaxBusCapacityException("Não é possível se inscrever nessa viagem porque a lista de passageiros já está lotada");
+
         UserEntity userFound = userRepository.findById(user.userId())
                 .orElseThrow(UserNotFoundException::new);
 
@@ -103,6 +122,80 @@ public class TripService {
 
 
         return tripUserMapper.map(saved);
+    }
+
+    public TripResponseDTO init(UUID tripId, CurrentUser currentUser) {
+        UserEntity driverFound = userRepository.findDriverById(currentUser.userId())
+                .orElseThrow(UserNotFoundException::new);
+
+        TripEntity tripFound = tripRepository.findByIdAndDriverId(tripId, driverFound.getId())
+                .orElseThrow(TripNotFoundException::new);
+
+        if (tripStatusRepository.isTripInitOrCancelled(tripFound.getId())) throw new TripAlreadyStatedOrCancelledException();
+
+        RouteEntity route = tripFound.getRoute();
+
+        LocalTime timeToStarted = route.getGoing();
+        LocalTime realTimeStated = LocalTime.now();
+
+        Delay delay;
+
+        if (realTimeStated.isAfter(timeToStarted) && ChronoUnit.MINUTES.between(timeToStarted, realTimeStated) <= INIT_TRIP_AFTER_MINUTES) delay = Delay.LATE;
+        else if (realTimeStated.isBefore(timeToStarted) && ChronoUnit.MINUTES.between(realTimeStated, timeToStarted) <= INIT_TRIP_BEFORE_MINUTES) delay = Delay.EARLY;
+        else if (realTimeStated.equals(timeToStarted)) delay = Delay.PUNCTUAL;
+        else throw new InvalidTimeToInitTrip("Você só pode iniciar uma viagem com " + INIT_TRIP_BEFORE_MINUTES + " minutos adiantados ou " + INIT_TRIP_AFTER_MINUTES + " minutos de atraso");
+
+        tripFound.getTripStatus().add(
+                TripStatusEntity.builder()
+                        .trip(tripFound)
+                        .delay(delay)
+                        .progress(Progress.STARTED)
+                        .build()
+        );
+
+        return tripMapper.map(tripRepository.save(tripFound));
+    }
+
+
+    @Transactional
+    public TripResponseDTO cancel(UUID tripId, CurrentUser currentUser, CancelTripRequestDTO request) {
+        UserEntity driverFound = userRepository.findDriverById(currentUser.userId())
+                .orElseThrow(UserNotFoundException::new);
+
+        TripEntity tripFound = tripRepository.findByIdAndDriverId(tripId, driverFound.getId())
+                .orElseThrow(TripNotFoundException::new);
+
+        if (tripStatusRepository.isTripCancelled(tripId)) throw new TripAlreadyCancelledException();
+
+        tripFound.getTripStatus().add(
+                TripStatusEntity.builder()
+                        .trip(tripFound)
+                        .delay(Delay.PUNCTUAL)
+                        .progress(Progress.CANCELLED)
+                        .build()
+        );
+
+        tripFound.setReasonOfCancellation(request.reasonOfCancellation());
+
+
+        List<String> emails = tripUserRepository.findAllEmailsByTripId(tripId);
+
+        TripEntity saved = tripRepository.save(tripFound);
+
+        if (!emails.isEmpty()) tripEventProducer.cancelTripEvent(saved, currentUser, emails);
+        return tripMapper.map(saved);
+    }
+
+
+    public List<TripUserResponseDTO> myTrips(CurrentUser user) {
+        List<TripUserEntity> trips = new ArrayList<>();
+
+        if (Role.DRIVER.equals(Role.valueOf(user.role()))) trips.addAll(tripUserRepository.findAllByDriverId(user.userId()));
+        if (Role.STUDENT.equals(Role.valueOf(user.role()))) trips.addAll(tripUserRepository.findAllByPassengerId(user.userId()));
+
+        return trips.stream()
+                .map(tripUserMapper::map)
+                .toList();
     }
 
     private TripEntity fetchEntity(UUID tripId) {

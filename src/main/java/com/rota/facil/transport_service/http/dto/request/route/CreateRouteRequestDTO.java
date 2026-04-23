@@ -12,6 +12,7 @@ public record CreateRouteRequestDTO(
     LocalTime return_,
     LocalTime goingFinish,
     LocalTime returnFinish,
-    Set<UUID> institutionsIds
+    Set<UUID> institutionsIds,
+    CreateRouteRecurringRequestDTO recurring
 ) {
 }

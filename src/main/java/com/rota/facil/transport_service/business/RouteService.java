@@ -1,23 +1,22 @@
 package com.rota.facil.transport_service.business;
 
 import com.rota.facil.transport_service.domain.exceptions.BoardPointNotFoundException;
+import com.rota.facil.transport_service.domain.exceptions.BusNotFoundException;
 import com.rota.facil.transport_service.domain.exceptions.InstitutionNotFoundException;
 import com.rota.facil.transport_service.domain.exceptions.RouteNotFoundException;
 import com.rota.facil.transport_service.http.dto.request.route.CreateBoardPointRouteRequestDTO;
+import com.rota.facil.transport_service.http.dto.request.route.CreateRouteRecurringRequestDTO;
 import com.rota.facil.transport_service.http.dto.request.route.CreateRouteRequestDTO;
 import com.rota.facil.transport_service.http.dto.response.route.RouteResponseDTO;
-import com.rota.facil.transport_service.persistence.entities.BoardPointEntity;
-import com.rota.facil.transport_service.persistence.entities.BoardPointRouteEntity;
-import com.rota.facil.transport_service.persistence.entities.InstitutionEntity;
-import com.rota.facil.transport_service.persistence.entities.RouteEntity;
+import com.rota.facil.transport_service.persistence.entities.*;
 import com.rota.facil.transport_service.persistence.mappers.RouteMapper;
-import com.rota.facil.transport_service.persistence.repositories.BoardPointRepository;
-import com.rota.facil.transport_service.persistence.repositories.InstitutionRepository;
-import com.rota.facil.transport_service.persistence.repositories.RouteRepository;
+import com.rota.facil.transport_service.persistence.repositories.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -28,7 +27,10 @@ public class RouteService {
     private final InstitutionRepository institutionRepository;
     private final BoardPointRepository boardPointRepository;
     private final RouteMapper routeMapper;
+    private final BusRepository busRepository;
+    private final TripRepository tripRepository;
 
+    @Transactional
     public RouteResponseDTO register(CreateRouteRequestDTO request) {
         Set<InstitutionEntity> institutionsFound = institutionRepository.findAllSetById(request.institutionsIds());
 
@@ -37,8 +39,23 @@ public class RouteService {
         RouteEntity preSaved = routeMapper.map(request);
         preSaved.setInstitutions(institutionsFound);
 
+        CreateRouteRecurringRequestDTO recurringRequest = request.recurring();
 
-        return routeMapper.map(routeRepository.save(preSaved));
+        RouteEntity saved = routeRepository.save(preSaved);
+
+        if (recurringRequest.startDate().equals(LocalDate.now()) || recurringRequest.finishDate().equals(LocalDate.now())) {
+            BusEntity busFound = busRepository.findById(recurringRequest.busId())
+                    .orElseThrow(BusNotFoundException::new);
+
+            tripRepository.save(
+                    TripEntity.builder()
+                            .route(saved)
+                            .bus(busFound)
+                            .build()
+            );
+        }
+
+        return routeMapper.map(saved);
     }
 
     public RouteResponseDTO fetch(UUID routeId) {
