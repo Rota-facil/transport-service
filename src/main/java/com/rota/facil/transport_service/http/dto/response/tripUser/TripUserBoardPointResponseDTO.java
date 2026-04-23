@@ -1,8 +1,8 @@
-package com.rota.facil.transport_service.http.dto.request.tripUser;
+package com.rota.facil.transport_service.http.dto.response.tripUser;
 
 import java.util.UUID;
 
-public record TripUserInstitutionResponseDTO(
+public record TripUserBoardPointResponseDTO(
         UUID id,
         String name,
         String latitude,

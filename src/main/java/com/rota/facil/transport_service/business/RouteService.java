@@ -1,5 +1,6 @@
 package com.rota.facil.transport_service.business;
 
+import com.rota.facil.transport_service.domain.enums.DaysOfWeek;
 import com.rota.facil.transport_service.domain.exceptions.BoardPointNotFoundException;
 import com.rota.facil.transport_service.domain.exceptions.BusNotFoundException;
 import com.rota.facil.transport_service.domain.exceptions.InstitutionNotFoundException;
@@ -43,7 +44,7 @@ public class RouteService {
 
         RouteEntity saved = routeRepository.save(preSaved);
 
-        if (recurringRequest.startDate().equals(LocalDate.now()) || recurringRequest.finishDate().equals(LocalDate.now())) {
+        if (recurringRequest.daysOfWeeks().contains(DaysOfWeek.getFromValueDay(LocalDate.now().getDayOfWeek().getValue()))) {
             BusEntity busFound = busRepository.findById(recurringRequest.busId())
                     .orElseThrow(BusNotFoundException::new);
 

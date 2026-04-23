@@ -6,6 +6,7 @@ import lombok.*;
 
 import java.time.LocalDate;
 import java.util.Set;
+import java.util.UUID;
 
 @Builder
 @Entity
@@ -15,6 +16,10 @@ import java.util.Set;
 @NoArgsConstructor
 public class RouteRecurringEntity {
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "route_recurring_id")
+    private UUID id;
+
     @OneToOne
     @JoinColumn(name = "route_id")
     private RouteEntity route;
@@ -22,12 +27,6 @@ public class RouteRecurringEntity {
     @ManyToOne
     @JoinColumn(name = "bus_id")
     private BusEntity busEntity;
-
-    @Column(name = "start_date")
-    private LocalDate startDate;
-
-    @Column(name = "finish_date")
-    private LocalDate finishDate;
 
     @ElementCollection
     @CollectionTable(name = "route_recurring_day_of_week_tb", joinColumns = @JoinColumn(name = "route_id"))
