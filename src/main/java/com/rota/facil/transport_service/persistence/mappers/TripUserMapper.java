@@ -1,6 +1,6 @@
 package com.rota.facil.transport_service.persistence.mappers;
 
-import com.rota.facil.transport_service.http.dto.request.tripUser.TripUserResponseDTO;
+import com.rota.facil.transport_service.http.dto.response.tripUser.TripUserResponseDTO;
 import com.rota.facil.transport_service.persistence.entities.TripUserEntity;
 import org.mapstruct.Builder;
 import org.mapstruct.Mapper;

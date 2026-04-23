@@ -7,7 +7,7 @@ import com.rota.facil.transport_service.domain.exceptions.*;
 import com.rota.facil.transport_service.http.dto.request.trip.CancelTripRequestDTO;
 import com.rota.facil.transport_service.http.dto.request.trip.CreateTripRequestDTO;
 import com.rota.facil.transport_service.http.dto.request.trip.JoinUserInTrip;
-import com.rota.facil.transport_service.http.dto.request.tripUser.TripUserResponseDTO;
+import com.rota.facil.transport_service.http.dto.response.tripUser.TripUserResponseDTO;
 import com.rota.facil.transport_service.http.dto.request.user.CurrentUser;
 import com.rota.facil.transport_service.http.dto.response.trip.TripResponseDTO;
 import com.rota.facil.transport_service.messaging.producers.RabbitTransportTripEventProducer;
@@ -21,7 +21,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
