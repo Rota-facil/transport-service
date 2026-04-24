@@ -1,5 +1,7 @@
 package com.rota.facil.transport_service.persistence.entities;
 
+import com.rota.facil.transport_service.domain.enums.Delay;
+import com.rota.facil.transport_service.domain.enums.Progress;
 import com.rota.facil.transport_service.domain.enums.Shift;
 import jakarta.persistence.*;
 import lombok.*;
@@ -54,4 +56,31 @@ public class RouteEntity {
 
     @OneToOne(mappedBy = "route", cascade = CascadeType.ALL)
     private RouteRecurringEntity recurring;
+
+    @OneToMany(mappedBy = "route")
+    private List<TripEntity> trips;
+
+    public Delay calculateDelay(LocalTime arrivalDate, Progress progress) {
+        Delay delay = null;
+
+        switch (progress) {
+            case RETURN_STARTED -> {
+                delay = this.buildDelay(arrivalDate, this.returnFinish.plusMinutes(5L));
+            }
+
+            case STARTED_FINISHED -> {
+                delay = this.buildDelay(arrivalDate, this.goingFinish.plusMinutes(4L));
+            }
+
+            default -> throw new IllegalArgumentException();
+        }
+
+        return delay;
+    }
+
+    private Delay buildDelay(LocalTime arrivalDate, LocalTime timeToCompare) {
+        if (arrivalDate.equals(timeToCompare)) return Delay.PUNCTUAL;
+        else if (arrivalDate.isBefore(timeToCompare)) return Delay.EARLY;
+        else return Delay.LATE;
+    }
 }

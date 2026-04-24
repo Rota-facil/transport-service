@@ -1,5 +1,6 @@
 package com.rota.facil.transport_service.persistence.repositories;
 
+import com.rota.facil.transport_service.domain.enums.Progress;
 import com.rota.facil.transport_service.persistence.entities.TripStatusEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -28,4 +29,12 @@ public interface TripStatusRepository extends JpaRepository<TripStatusEntity, UU
         AND ts.progress IN (com.rota.facil.transport_service.domain.enums.Progress.CANCELLED)
     """)
     boolean isTripCancelled(@Param("tripId") UUID tripId);
+
+    @Query("""
+        SELECT COUNT(ts) > 0 FROM TripStatusEntity ts
+        INNER JOIN ts.trip t
+        WHERE t.id = :tripId
+        AND ts.progress = :progress
+    """)
+    boolean existsByTripIdAndProgress(@Param("tripId") UUID tripId, @Param("progress") Progress progress);
 }
