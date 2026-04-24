@@ -22,6 +22,10 @@ public class InstitutionVisitedEntity {
     @JoinColumn(name = "institution_id")
     private InstitutionEntity institution;
 
+    @ManyToOne
+    @JoinColumn(name = "trip_id")
+    private TripEntity trip;
+
     @Builder.Default
     private Boolean going = false;
 

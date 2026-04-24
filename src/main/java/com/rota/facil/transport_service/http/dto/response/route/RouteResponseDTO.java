@@ -17,6 +17,7 @@ public record RouteResponseDTO(
         LocalTime returnFinish,
         LocalDateTime createdAt,
         Set<RouteInstitutionResponseDTO> institutions,
-        List<RouteBoardPointResponseDTO> boardPoints
+        List<RouteBoardPointResponseDTO> boardPoints,
+        RouteRecurringResponseDTO recurring
 ) {
 }

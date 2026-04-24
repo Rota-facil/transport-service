@@ -16,20 +16,22 @@ import com.rota.facil.transport_service.persistence.mappers.TripMapper;
 import com.rota.facil.transport_service.persistence.mappers.TripUserMapper;
 import com.rota.facil.transport_service.persistence.repositories.*;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 public class TripService {
+    private static final Logger log = LoggerFactory.getLogger(TripService.class);
     private final RabbitTransportTripEventProducer tripEventProducer;
     private final TripRepository tripRepository;
     private final BusRepository busRepository;
@@ -39,6 +41,7 @@ public class TripService {
     private final BoardPointRepository boardPointRepository;
     private final BoardPointRouteRepository boardPointRouteRepository;
     private final InstitutionRepository institutionRepository;
+    private final InstitutionVisitedRepository institutionVisitedRepository;
     private final TripMapper tripMapper;
     private final TripUserMapper tripUserMapper;
     private final UserRepository userRepository;
@@ -195,6 +198,82 @@ public class TripService {
         return trips.stream()
                 .map(tripUserMapper::map)
                 .toList();
+    }
+
+    @Transactional
+    public void inferInstitutionArrival(UUID institutionId, UUID tripId, LocalDateTime arrivalDate) {
+        RouteEntity routeFound = routeRepository.findByTripId(tripId)
+                .orElseThrow(RouteNotFoundException::new);
+        TripEntity tripFound = tripRepository.findById(tripId)
+                .orElseThrow(TripNotFoundException::new);
+
+        InstitutionVisitedEntity newInstitutionVisitedFound = institutionVisitedRepository.findByInstitutionIdAndTripId(institutionId, tripId)
+                .orElseGet( () -> {
+                    InstitutionEntity institutionFound = institutionRepository.findById(institutionId)
+                                    .orElseThrow(InstitutionNotFoundException::new);
+
+                    return InstitutionVisitedEntity.builder()
+                            .institution(institutionFound)
+                            .trip(tripFound)
+                            .build();
+                });
+
+        boolean isGoing = this.inferGoingOrReturn(arrivalDate.toLocalTime(), routeFound.getGoing(), routeFound.getGoingFinish());
+        boolean isReturn = this.inferGoingOrReturn(arrivalDate.toLocalTime(), routeFound.getReturn_(), routeFound.getGoingFinish());
+        Progress progress = null;
+
+        Set<InstitutionEntity> institutionsToBeVisited = this.fetchInstitutionsToBeVisited(routeFound, tripFound);
+        List<InstitutionVisitedEntity> institutionsVisited = new ArrayList<>();
+
+        if (isGoing) {
+            progress = Progress.STARTED_FINISHED;
+            newInstitutionVisitedFound.setGoing(true);
+            institutionsVisited  = institutionVisitedRepository.findGoingByTripId(tripId);
+        }
+
+        if (isReturn) {
+            progress = Progress.RETURN_STARTED;
+            newInstitutionVisitedFound.setReturn_(true);
+            institutionsVisited  = institutionVisitedRepository.findReturnByTripId(tripId);
+        }
+
+        if (progress == null) {
+            log.warn("Evento de chegada fora de qualquer intervalo de tempo configurado para a trip {}", tripId);
+            return;
+        }
+
+        if (tripStatusRepository.existsByTripIdAndProgress(tripId, progress)) return;
+
+        institutionsVisited.add(institutionVisitedRepository.save(newInstitutionVisitedFound));
+
+        boolean allInstitutionsWhereVisited = (institutionsToBeVisited.size() == institutionsVisited.size());
+
+        if (allInstitutionsWhereVisited) this.setStatusTrip(tripFound, progress, arrivalDate, routeFound);
+    }
+
+    private void setStatusTrip(TripEntity trip, Progress progress, LocalDateTime arrivalDate, RouteEntity route) {
+        if (progress.equals(Progress.RETURN_STARTED) && !tripStatusRepository.existsByTripIdAndProgress(trip.getId(), Progress.STARTED_FINISHED)) throw new TripStartedStillNotFinishYetException();
+        trip.getTripStatus().add(
+                TripStatusEntity.builder()
+                        .trip(trip)
+                        .progress(progress)
+                        .delay(route.calculateDelay(arrivalDate.toLocalTime(), progress))
+                        .build()
+        );
+
+        tripRepository.save(trip);
+    }
+
+    private Set<InstitutionEntity> fetchInstitutionsToBeVisited(RouteEntity routeFound, TripEntity trip) {
+        Set<InstitutionEntity> institutions = new HashSet<>(routeFound.getInstitutions());
+        institutions.removeAll(trip.getIgnoredInstitutions());
+        return institutions;
+    }
+
+    private boolean inferGoingOrReturn(LocalTime arrivalDate, LocalTime startInterval, LocalTime finishInterval) {
+        LocalTime startWithTol = startInterval.minusMinutes(6L);
+        LocalTime endWithTol = finishInterval.plusMinutes(6L);
+        return !arrivalDate.isBefore(startWithTol) && !arrivalDate.isAfter(endWithTol);
     }
 
     private TripEntity fetchEntity(UUID tripId) {

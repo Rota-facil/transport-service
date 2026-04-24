@@ -27,9 +27,10 @@ public class RouteService {
     private final RouteRepository routeRepository;
     private final InstitutionRepository institutionRepository;
     private final BoardPointRepository boardPointRepository;
-    private final RouteMapper routeMapper;
     private final BusRepository busRepository;
     private final TripRepository tripRepository;
+    private final TripStatusRepository tripStatusRepository;
+    private final RouteMapper routeMapper;
 
     @Transactional
     public RouteResponseDTO register(CreateRouteRequestDTO request) {
@@ -48,12 +49,15 @@ public class RouteService {
             BusEntity busFound = busRepository.findById(recurringRequest.busId())
                     .orElseThrow(BusNotFoundException::new);
 
-            tripRepository.save(
+            TripEntity tripSaved = tripRepository.save(
                     TripEntity.builder()
                             .route(saved)
                             .bus(busFound)
                             .build()
             );
+
+            tripSaved.setTripStatus(new ArrayList<>());
+            tripSaved.getTripStatus().add(tripStatusRepository.save(TripStatusEntity.builder().trip(tripSaved).build()));
         }
 
         return routeMapper.map(saved);

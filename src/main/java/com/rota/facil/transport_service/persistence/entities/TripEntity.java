@@ -6,6 +6,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Builder
@@ -39,4 +40,12 @@ public class TripEntity {
 
     @OneToMany(mappedBy = "trip", cascade = CascadeType.ALL)
     private List<TripStatusEntity> tripStatus;
+
+    @ManyToMany
+    @JoinTable(
+            name = "ignored_institutions_tb",
+            joinColumns = @JoinColumn(name = "trip_id"),
+            inverseJoinColumns = @JoinColumn(name = "institution_id")
+    )
+    private Set<InstitutionEntity> ignoredInstitutions;
 }
