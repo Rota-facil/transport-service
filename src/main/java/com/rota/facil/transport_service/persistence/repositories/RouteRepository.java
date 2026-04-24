@@ -14,7 +14,9 @@ public interface RouteRepository extends JpaRepository<RouteEntity, UUID> {
     @Query("""
         SELECT r FROM RouteEntity r
         INNER JOIN r.trips t
+        INNER JOIN t.tripStatus ts
         WHERE t.id = :tripId
+        AND ts.progress NOT IN (com.rota.facil.transport_service.domain.enums.Progress.CANCELLED)
     """)
     Optional<RouteEntity> findByTripId(@Param("tripId") UUID tripId);
 }
