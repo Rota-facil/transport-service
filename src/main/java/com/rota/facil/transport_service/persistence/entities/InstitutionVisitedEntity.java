@@ -32,4 +32,16 @@ public class InstitutionVisitedEntity {
     @Builder.Default
     @Column(name = "return")
     private Boolean return_ = false;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof InstitutionEntity that)) return false;
+        return id != null && id.equals(that.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }

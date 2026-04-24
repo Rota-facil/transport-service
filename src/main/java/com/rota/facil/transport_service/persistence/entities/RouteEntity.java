@@ -83,4 +83,16 @@ public class RouteEntity {
         else if (arrivalDate.isBefore(timeToCompare)) return Delay.EARLY;
         else return Delay.LATE;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof InstitutionEntity that)) return false;
+        return id != null && id.equals(that.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }

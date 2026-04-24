@@ -1,5 +1,6 @@
 package com.rota.facil.transport_service.persistence.repositories;
 
+import com.rota.facil.transport_service.persistence.entities.InstitutionEntity;
 import com.rota.facil.transport_service.persistence.entities.TripUserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -51,4 +52,12 @@ public interface TripUserRepository extends JpaRepository<TripUserEntity, UUID> 
         WHERE u.id = :passengerId
     """)
     List<TripUserEntity> findAllByPassengerId(@Param("passengerId") UUID passengerId);
+
+    @Query("""
+        SELECT i FROM TripUserEntity tu
+        INNER JOIN tu.institution i
+        INNER JOIN tu.trip t
+        WHERE t.id = :tripId
+    """)
+    List<InstitutionEntity> findAllInstitutionsByTripId(@Param("tripId") UUID tripId);
 }

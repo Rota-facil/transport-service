@@ -27,4 +27,16 @@ public class BoardPointEntity {
         if (boardPointEntity.getLatitude() != null) this.latitude = boardPointEntity.getLatitude();
         if (boardPointEntity.getLongitude() != null) this.longitude = boardPointEntity.getLongitude();
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof InstitutionEntity that)) return false;
+        return id != null && id.equals(that.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }

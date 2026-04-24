@@ -33,4 +33,16 @@ public class RouteRecurringEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "days_of_week")
     private Set<DaysOfWeek> daysOfWeek;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof InstitutionEntity that)) return false;
+        return id != null && id.equals(that.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }

@@ -31,4 +31,16 @@ public class BoardPointRouteEntity {
 
     @Column(name = "board_time_finish")
     private LocalTime boardTimeFinish;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof InstitutionEntity that)) return false;
+        return id != null && id.equals(that.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }

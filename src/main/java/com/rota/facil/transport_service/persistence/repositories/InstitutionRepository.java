@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -16,4 +17,13 @@ public interface InstitutionRepository extends JpaRepository<InstitutionEntity, 
         WHERE i.id IN (:ids)
     """)
     Set<InstitutionEntity> findAllSetById(@Param("ids") Iterable<UUID> ids);
+
+    @Query("""
+        SELECT i FROM InstitutionEntity i
+        INNER JOIN i.routes r
+        INNER JOIN r.trips t
+        INNER JOIN r.institutions ir
+        WHERE t.id = :tripId
+    """)
+    List<InstitutionEntity> findAllByTripId(@Param("tripId") UUID tripId);
 }
