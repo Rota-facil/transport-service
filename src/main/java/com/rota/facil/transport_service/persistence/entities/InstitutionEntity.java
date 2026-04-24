@@ -25,7 +25,7 @@ public class InstitutionEntity {
     private String longitude;
 
 
-    @OneToMany
+    @ManyToMany(mappedBy = "institutions")
     List<RouteEntity> routes;
 
     public void update(InstitutionEntity institutionEntity) {
