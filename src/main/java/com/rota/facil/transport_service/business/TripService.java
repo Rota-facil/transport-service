@@ -102,6 +102,8 @@ public class TripService {
 
         if (passengers > bus.getCapacity()) throw new MaxBusCapacityException("Não é possível se inscrever nessa viagem porque a lista de passageiros já está lotada");
 
+        if (passengers == bus.getCapacity()) this.registerIgnoredInstitutionsForTrip(tripFound);
+
         UserEntity userFound = userRepository.findById(user.userId())
                 .orElseThrow(UserNotFoundException::new);
 
@@ -124,6 +126,20 @@ public class TripService {
 
 
         return tripUserMapper.map(saved);
+    }
+
+    private void registerIgnoredInstitutionsForTrip(TripEntity tripFound) {
+        List<InstitutionEntity> allInstitutionsToBeVisitedInRoute = new ArrayList<>(institutionRepository.findAllByTripId(tripFound.getId()));
+        List<InstitutionEntity> allInstitutionsShouldActuallyBeVisited = tripUserRepository.findAllInstitutionsByTripId(tripFound.getId());
+
+        allInstitutionsToBeVisitedInRoute.removeAll(allInstitutionsShouldActuallyBeVisited);
+
+        List<InstitutionEntity> ignoredInstitutions = List.copyOf(allInstitutionsToBeVisitedInRoute);
+
+        tripFound.setIgnoredInstitutions(new HashSet<>());
+
+        for (InstitutionEntity ignoredInstitution : ignoredInstitutions) tripFound.getIgnoredInstitutions().add(ignoredInstitution);
+        tripRepository.save(tripFound);
     }
 
     public TripResponseDTO init(UUID tripId, CurrentUser currentUser) {

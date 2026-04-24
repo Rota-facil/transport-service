@@ -48,4 +48,16 @@ public class TripEntity {
             inverseJoinColumns = @JoinColumn(name = "institution_id")
     )
     private Set<InstitutionEntity> ignoredInstitutions;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof InstitutionEntity that)) return false;
+        return id != null && id.equals(that.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }

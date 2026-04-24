@@ -37,4 +37,16 @@ public class UserEntity {
         if (userEntity.getEmail() != null) this.email = userEntity.getEmail();
         if (userEntity.getScore() != null) this.score = userEntity.getScore();
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof InstitutionEntity that)) return false;
+        return id != null && id.equals(that.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }
