@@ -33,4 +33,14 @@ public class RabbitAuthEventConsumer {
             e.printStackTrace();
         }
     }
+
+    @RabbitListener(queues = "${rabbitmq.transport.user.deleted.queue}")
+    public void handlerDeleteUser(UserEventReceive updateUser) {
+        try {
+            UserEntity userEntity = userEventMapper.map(updateUser);
+            userService.delete(userEntity);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }
