@@ -217,54 +217,100 @@ public class TripService {
     }
 
     @Transactional
-    public void inferInstitutionArrival(UUID institutionId, UUID tripId, LocalDateTime arrivalDate) {
-        RouteEntity routeFound = routeRepository.findByTripId(tripId)
-                .orElseThrow(RouteNotFoundException::new);
+    public void processTrip(UUID tripId, double latitude, double longitude) {
         TripEntity tripFound = tripRepository.findById(tripId)
                 .orElseThrow(TripNotFoundException::new);
 
-        InstitutionVisitedEntity newInstitutionVisitedFound = institutionVisitedRepository.findByInstitutionIdAndTripId(institutionId, tripId)
-                .orElseGet( () -> {
-                    InstitutionEntity institutionFound = institutionRepository.findById(institutionId)
-                                    .orElseThrow(InstitutionNotFoundException::new);
+        tripFound.updateCoordinates(latitude, longitude);
 
-                    return InstitutionVisitedEntity.builder()
-                            .institution(institutionFound)
-                            .trip(tripFound)
-                            .build();
-                });
+        Optional<InstitutionEntity> institutionExisting = routeRepository.findInstitutionByTripIdAndCoordinates(tripId, longitude, latitude);
+        Optional<BoardPointEntity> boardPointExisting = routeRepository.findBoardPointByTripIdAndCoordinates(tripId, longitude, latitude);
+
+        LocalDateTime now = LocalDateTime.now();
+        institutionExisting.ifPresent(institution -> this.inferInstitutionArrival(institution, tripFound, now));
+        boardPointExisting.ifPresent(boardPoint -> this.inferBoardPointArrival(boardPoint, tripFound, now));
+    }
+
+    @Transactional
+    public void inferBoardPointArrival(BoardPointEntity boardPoint, TripEntity trip, LocalDateTime arrivalDate) {
+//        RouteEntity routeFound = routeRepository.findByTripId(trip.getId())
+//                .orElseThrow(RouteNotFoundException::new);
+//
+//        BoardPointVisitedEntity newBoardPointVisitedFound = boardPointVisitedRepository.findByBoardPointIdAndTripId(boardPoint.getId(), trip.getId())
+//                .orElseGet(() -> new BoardPointVisitedEntity.builder()
+//                        .boardPoint(boardPoint)
+//                        .trip(trip)
+//                        .build()
+//                );
+//
+//        boolean isGoing = this.inferGoingOrReturn(arrivalDate.toLocalTime(), routeFound.getGoing(), routeFound.getGoingFinish());
+//
+//        Set<BoardPointEntity> boardPointsToBeVisited = this.fetchBoardPointToBeVisited(routeFound, trip);
+//
+//        if (isGoing) {
+//            newBoardPointVisitedFound.setGoing(true);
+//            boardPointVisitedRepository.save(newBoardPointVisitedFound);
+//            return;
+//        }
+//
+//        newBoardPointVisitedFound.setReturn_(true);
+//        List<BoardPointEntity> boardPointsVisited  = boardPointVisitedRepository.findReturnByTripId(trip.getId());
+//
+//
+//        boardPointsVisited.add(boardPointVisitedRepository.save(newBoardPointVisitedFound));
+//
+//        boolean allBoardPointsWhereVisitedInReturn = (boardPointsToBeVisited.size() == boardPointsVisited.size());
+//
+//        if (allBoardPointsWhereVisitedInReturn) {
+//            Progress progress = Progress.RETURN_FINISHED;
+//            if (tripStatusRepository.existsByTripIdAndProgress(trip.getId(), progress)) return;
+//            this.setStatusTrip(trip, progress, arrivalDate, routeFound);
+//        }
+    }
+
+    @Transactional
+    public void inferInstitutionArrival(InstitutionEntity institution, TripEntity trip, LocalDateTime arrivalDate) {
+        RouteEntity routeFound = routeRepository.findByTripId(trip.getId())
+                .orElseThrow(RouteNotFoundException::new);
+
+        InstitutionVisitedEntity newInstitutionVisitedFound = institutionVisitedRepository.findByInstitutionIdAndTripId(institution.getId(), trip.getId())
+                .orElseGet( () -> InstitutionVisitedEntity.builder()
+                            .institution(institution)
+                            .trip(trip)
+                            .build()
+                );
 
         boolean isGoing = this.inferGoingOrReturn(arrivalDate.toLocalTime(), routeFound.getGoing(), routeFound.getGoingFinish());
         boolean isReturn = this.inferGoingOrReturn(arrivalDate.toLocalTime(), routeFound.getReturn_(), routeFound.getGoingFinish());
         Progress progress = null;
 
-        Set<InstitutionEntity> institutionsToBeVisited = this.fetchInstitutionsToBeVisited(routeFound, tripFound);
+        Set<InstitutionEntity> institutionsToBeVisited = this.fetchInstitutionsToBeVisited(routeFound, trip);
         List<InstitutionVisitedEntity> institutionsVisited = new ArrayList<>();
 
         if (isGoing) {
             progress = Progress.STARTED_FINISHED;
             newInstitutionVisitedFound.setGoing(true);
-            institutionsVisited  = institutionVisitedRepository.findGoingByTripId(tripId);
+            institutionsVisited  = institutionVisitedRepository.findGoingByTripId(trip.getId());
         }
 
         if (isReturn) {
             progress = Progress.RETURN_STARTED;
             newInstitutionVisitedFound.setReturn_(true);
-            institutionsVisited  = institutionVisitedRepository.findReturnByTripId(tripId);
+            institutionsVisited  = institutionVisitedRepository.findReturnByTripId(trip.getId());
         }
 
         if (progress == null) {
-            log.warn("Evento de chegada fora de qualquer intervalo de tempo configurado para a trip {}", tripId);
+            log.warn("Evento de chegada fora de qualquer intervalo de tempo configurado para a trip {}", trip.getId());
             return;
         }
 
-        if (tripStatusRepository.existsByTripIdAndProgress(tripId, progress)) return;
+        if (tripStatusRepository.existsByTripIdAndProgress(trip.getId(), progress)) return;
 
         institutionsVisited.add(institutionVisitedRepository.save(newInstitutionVisitedFound));
 
         boolean allInstitutionsWhereVisited = (institutionsToBeVisited.size() == institutionsVisited.size());
 
-        if (allInstitutionsWhereVisited) this.setStatusTrip(tripFound, progress, arrivalDate, routeFound);
+        if (allInstitutionsWhereVisited) this.setStatusTrip(trip, progress, arrivalDate, routeFound);
     }
 
     private void setStatusTrip(TripEntity trip, Progress progress, LocalDateTime arrivalDate, RouteEntity route) {
@@ -284,6 +330,12 @@ public class TripService {
         Set<InstitutionEntity> institutions = new HashSet<>(routeFound.getInstitutions());
         institutions.removeAll(trip.getIgnoredInstitutions());
         return institutions;
+    }
+
+    private Set<BoardPointEntity> fetchBoardPointToBeVisited(RouteEntity routeFound, TripEntity trip) {
+        Set<BoardPointEntity> boardPoints = new HashSet<>(routeFound.getBoardPoints().stream().map(BoardPointRouteEntity::getBoardPoint).toList());
+        boardPoints.removeAll(trip.getIgnoredBoardPoints());
+        return boardPoints;
     }
 
     private boolean inferGoingOrReturn(LocalTime arrivalDate, LocalTime startInterval, LocalTime finishInterval) {

@@ -2,6 +2,10 @@ package com.rota.facil.transport_service.persistence.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.geom.PrecisionModel;
 
 import java.util.List;
 import java.util.UUID;
@@ -20,10 +24,13 @@ public class InstitutionEntity {
 
     private String name;
 
-    private String latitude;
+    private Double latitude;
 
-    private String longitude;
+    private Double longitude;
 
+
+    @Column(columnDefinition = "geography(POINT, 4326)")
+    private Point geom;
 
     @ManyToMany(mappedBy = "institutions")
     List<RouteEntity> routes;
@@ -32,6 +39,7 @@ public class InstitutionEntity {
         if (institutionEntity.getName() != null) this.name = institutionEntity.getName();
         if (institutionEntity.getLatitude() != null) this.latitude = institutionEntity.getLatitude();
         if (institutionEntity.getLongitude() != null) this.longitude = institutionEntity.getLongitude();
+         if (institutionEntity.getLatitude() != null && institutionEntity.getLongitude() != null) this.setGeom();
     }
 
     @Override
@@ -44,5 +52,10 @@ public class InstitutionEntity {
     @Override
     public int hashCode() {
         return getClass().hashCode();
+    }
+
+    public void setGeom() {
+        GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
+        this.geom = geometryFactory.createPoint(new Coordinate(this.longitude, this.latitude));
     }
 }

@@ -5,7 +5,7 @@ import java.util.UUID;
 public record TripUserBoardPointResponseDTO(
         UUID id,
         String name,
-        String latitude,
-        String longitude
+        Double latitude,
+        Double longitude
 ) {
 }

@@ -6,8 +6,8 @@ import java.util.UUID;
 public record RouteBoardPointResponseDTO(
         UUID id,
         String name,
-        String latitude,
-        String longitude,
+        Double latitude,
+        Double longitude,
         LocalTime boardTimeGoing,
         LocalTime boardTimeFinish
 ) {
