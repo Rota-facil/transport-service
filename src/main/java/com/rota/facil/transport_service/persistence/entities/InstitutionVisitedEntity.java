@@ -36,7 +36,7 @@ public class InstitutionVisitedEntity {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof InstitutionEntity that)) return false;
+        if (!(o instanceof InstitutionVisitedEntity that)) return false;
         return id != null && id.equals(that.getId());
     }
 
