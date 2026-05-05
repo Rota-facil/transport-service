@@ -1,6 +1,6 @@
 services:
   transport-database:
-    image: postgres:16
+    image: postgis/postgis:16-3.4
     container_name: transport-database
 
     environment:

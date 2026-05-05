@@ -34,6 +34,12 @@ public class TripEntity {
     private String reasonOfCancellation;
 
     @Builder.Default
+    private Double latitude = 0.0;
+
+    @Builder.Default
+    private Double longitude = 0.0;
+
+    @Builder.Default
     @CreationTimestamp
     @Column(name = "created_at")
     private LocalDate createdAt = LocalDate.now();
@@ -49,15 +55,28 @@ public class TripEntity {
     )
     private Set<InstitutionEntity> ignoredInstitutions;
 
+    @ManyToMany
+    @JoinTable(
+            name = "ignored_board_points_tb",
+            joinColumns = @JoinColumn(name = "trip_id"),
+            inverseJoinColumns = @JoinColumn(name = "board_point_id")
+    )
+    private Set<BoardPointEntity> ignoredBoardPoints;
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof InstitutionEntity that)) return false;
+        if (!(o instanceof TripEntity that)) return false;
         return id != null && id.equals(that.getId());
     }
 
     @Override
     public int hashCode() {
         return getClass().hashCode();
+    }
+
+    public void updateCoordinates(double latitude, double longitude) {
+        this.latitude = latitude;
+        this.longitude = longitude;
     }
 }

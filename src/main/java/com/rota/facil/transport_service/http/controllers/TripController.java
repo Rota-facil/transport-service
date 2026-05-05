@@ -26,6 +26,16 @@ public class TripController {
 //        return ResponseEntity.ok(tripService.register(request));
 //    }
 
+    @PostMapping("/process")
+    public ResponseEntity<Void> processTrip(
+            @RequestParam UUID tripId,
+            @RequestParam Double latitude,
+            @RequestParam Double longitude
+    ) {
+        tripService.processTrip(tripId, latitude, longitude);
+        return ResponseEntity.ok().build();
+    }
+
     @PostMapping("/{tripId}/join")
     public ResponseEntity<TripUserResponseDTO> joinInTrip(
             @PathVariable UUID tripId,

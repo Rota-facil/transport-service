@@ -46,7 +46,7 @@ public class TripUserEntity {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof InstitutionEntity that)) return false;
+        if (!(o instanceof TripUserEntity that)) return false;
         return id != null && id.equals(that.getId());
     }
 

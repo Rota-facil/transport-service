@@ -14,6 +14,7 @@ public class BoardPointService {
     private final BoardPointRepository boardPointRepository;
 
     public void register(BoardPointEntity boardPointEntity) {
+        boardPointEntity.setGeom();
         boardPointRepository.save(boardPointEntity);
     }
 
