@@ -26,7 +26,7 @@ public interface RouteRepository extends JpaRepository<RouteEntity, UUID> {
         SELECT b.* FROM routes_tb r
         INNER JOIN trips_tb t USING(route_id)
         INNER JOIN board_points_routes_tb br USING(route_id)
-        INNER JOIN board_points b USING(board_point_id)
+        INNER JOIN board_points_tb b USING(board_point_id)
         WHERE t.trip_id = :tripId
         AND ST_DWithin(b.geom, ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326)::geography, 10)
     """, nativeQuery = true)

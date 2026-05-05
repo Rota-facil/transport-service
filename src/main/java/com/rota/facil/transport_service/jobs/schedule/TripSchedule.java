@@ -29,7 +29,7 @@ public class TripSchedule {
         for (RouteRecurringEntity routeRecurring : routeRecurringEntities) {
             TripEntity preSavedTrip = TripEntity.builder()
                     .route(routeRecurring.getRoute())
-                    .bus(routeRecurring.getBusEntity())
+                    .bus(routeRecurring.getBus())
                     .tripStatus(new ArrayList<>())
                     .build();
             preSavedTrip.getTripStatus().add(TripStatusEntity.builder().trip(preSavedTrip).build());

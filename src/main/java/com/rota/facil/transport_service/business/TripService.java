@@ -31,7 +31,16 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 public class TripService {
+
+    @Value("${init.trip.before.minutes}")
+    private Long INIT_TRIP_BEFORE_MINUTES;
+
+    @Value("${init.trip.after.minutes}")
+    private Long INIT_TRIP_AFTER_MINUTES;
+
     private static final Logger log = LoggerFactory.getLogger(TripService.class);
+
+
     private final RabbitTransportTripEventProducer tripEventProducer;
     private final TripRepository tripRepository;
     private final BusRepository busRepository;
@@ -42,15 +51,10 @@ public class TripService {
     private final BoardPointRouteRepository boardPointRouteRepository;
     private final InstitutionRepository institutionRepository;
     private final InstitutionVisitedRepository institutionVisitedRepository;
+    private final BoardPointVisitedRepository boardPointVisitedRepository;
     private final TripMapper tripMapper;
     private final TripUserMapper tripUserMapper;
     private final UserRepository userRepository;
-
-    @Value("${init.trip.before.minutes}")
-    private Long INIT_TRIP_BEFORE_MINUTES;
-
-    @Value("${init.trip.after.minutes}")
-    private Long INIT_TRIP_AFTER_MINUTES;
 
     @Transactional
     public TripResponseDTO register(CreateTripRequestDTO request) {
@@ -233,39 +237,41 @@ public class TripService {
 
     @Transactional
     public void inferBoardPointArrival(BoardPointEntity boardPoint, TripEntity trip, LocalDateTime arrivalDate) {
-//        RouteEntity routeFound = routeRepository.findByTripId(trip.getId())
-//                .orElseThrow(RouteNotFoundException::new);
-//
-//        BoardPointVisitedEntity newBoardPointVisitedFound = boardPointVisitedRepository.findByBoardPointIdAndTripId(boardPoint.getId(), trip.getId())
-//                .orElseGet(() -> new BoardPointVisitedEntity.builder()
-//                        .boardPoint(boardPoint)
-//                        .trip(trip)
-//                        .build()
-//                );
-//
-//        boolean isGoing = this.inferGoingOrReturn(arrivalDate.toLocalTime(), routeFound.getGoing(), routeFound.getGoingFinish());
-//
-//        Set<BoardPointEntity> boardPointsToBeVisited = this.fetchBoardPointToBeVisited(routeFound, trip);
-//
-//        if (isGoing) {
-//            newBoardPointVisitedFound.setGoing(true);
-//            boardPointVisitedRepository.save(newBoardPointVisitedFound);
-//            return;
-//        }
-//
-//        newBoardPointVisitedFound.setReturn_(true);
-//        List<BoardPointEntity> boardPointsVisited  = boardPointVisitedRepository.findReturnByTripId(trip.getId());
-//
-//
-//        boardPointsVisited.add(boardPointVisitedRepository.save(newBoardPointVisitedFound));
-//
-//        boolean allBoardPointsWhereVisitedInReturn = (boardPointsToBeVisited.size() == boardPointsVisited.size());
-//
-//        if (allBoardPointsWhereVisitedInReturn) {
-//            Progress progress = Progress.RETURN_FINISHED;
-//            if (tripStatusRepository.existsByTripIdAndProgress(trip.getId(), progress)) return;
-//            this.setStatusTrip(trip, progress, arrivalDate, routeFound);
-//        }
+        RouteEntity routeFound = routeRepository.findByTripId(trip.getId())
+                .orElseThrow(RouteNotFoundException::new);
+
+        BoardPointVisitedEntity newBoardPointVisitedFound = boardPointVisitedRepository.findByBoardPointIdAndTripId(boardPoint.getId(), trip.getId())
+                .orElseGet(() -> BoardPointVisitedEntity.builder()
+                        .boardPoint(boardPoint)
+                        .trip(trip)
+                        .build()
+                );
+
+        boolean isGoing = this.inferGoingOrReturn(arrivalDate.toLocalTime(), routeFound.getGoing(), routeFound.getGoingFinish());
+        boolean isReturn = this.inferGoingOrReturn(arrivalDate.toLocalTime(), routeFound.getReturn_(), routeFound.getReturnFinish());
+
+        Set<BoardPointEntity> boardPointsToBeVisited = this.fetchBoardPointToBeVisited(routeFound, trip);
+
+        if (isGoing) {
+            newBoardPointVisitedFound.setGoing(true);
+            boardPointVisitedRepository.save(newBoardPointVisitedFound);
+        }
+
+        if (isReturn) {
+            newBoardPointVisitedFound.setReturn_(true);
+            List<BoardPointVisitedEntity> boardPointsVisited  = boardPointVisitedRepository.findReturnByTripId(trip.getId());
+
+
+            boardPointsVisited.add(boardPointVisitedRepository.save(newBoardPointVisitedFound));
+
+            boolean allBoardPointsWhereVisitedInReturn = (boardPointsToBeVisited.size() == boardPointsVisited.size());
+
+            if (allBoardPointsWhereVisitedInReturn) {
+                Progress progress = Progress.RETURN_FINISHED;
+                if (tripStatusRepository.existsByTripIdAndProgress(trip.getId(), progress)) return;
+                this.setStatusTrip(trip, progress, arrivalDate, routeFound);
+            }
+        }
     }
 
     @Transactional

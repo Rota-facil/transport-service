@@ -40,14 +40,16 @@ public class RouteService {
 
         RouteEntity preSaved = routeMapper.map(request);
         preSaved.setInstitutions(institutionsFound);
+        preSaved.getRecurring().setRoute(preSaved);
 
         CreateRouteRecurringRequestDTO recurringRequest = request.recurring();
 
+        BusEntity busFound = busRepository.findById(recurringRequest.busId())
+                .orElseThrow(BusNotFoundException::new);
+
         RouteEntity saved = routeRepository.save(preSaved);
 
-        if (recurringRequest.daysOfWeeks().contains(DaysOfWeek.getFromValueDay(LocalDate.now().getDayOfWeek().getValue()))) {
-            BusEntity busFound = busRepository.findById(recurringRequest.busId())
-                    .orElseThrow(BusNotFoundException::new);
+        if (recurringRequest.daysOfWeek().contains(DaysOfWeek.getFromValueDay(LocalDate.now().getDayOfWeek().getValue()))) {
 
             TripEntity tripSaved = tripRepository.save(
                     TripEntity.builder()

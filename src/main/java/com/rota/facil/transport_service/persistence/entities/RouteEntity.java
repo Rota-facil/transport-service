@@ -16,8 +16,7 @@ import java.util.UUID;
 @Builder
 @Entity
 @Table(name = "routes_tb")
-@Getter
-@Setter
+@Getter @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class RouteEntity {
@@ -87,7 +86,7 @@ public class RouteEntity {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof InstitutionEntity that)) return false;
+        if (!(o instanceof RouteEntity that)) return false;
         return id != null && id.equals(that.getId());
     }
 

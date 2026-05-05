@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 public record CreateRouteRecurringRequestDTO(
@@ -12,6 +13,6 @@ public record CreateRouteRecurringRequestDTO(
         UUID busId,
 
         @NotNull(message = "selecione pelo menos um dia da semana que ônibus fara a rota")
-        List<DaysOfWeek> daysOfWeeks
+        List<DaysOfWeek> daysOfWeek
 ) {
 }

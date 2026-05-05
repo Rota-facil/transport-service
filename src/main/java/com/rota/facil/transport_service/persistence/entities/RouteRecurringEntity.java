@@ -26,10 +26,10 @@ public class RouteRecurringEntity {
 
     @ManyToOne
     @JoinColumn(name = "bus_id")
-    private BusEntity busEntity;
+    private BusEntity bus;
 
     @ElementCollection
-    @CollectionTable(name = "route_recurring_day_of_week_tb", joinColumns = @JoinColumn(name = "route_id"))
+    @CollectionTable(name = "route_recurring_day_of_week_tb", joinColumns = @JoinColumn(name = "route_recurring_id"))
     @Enumerated(EnumType.STRING)
     @Column(name = "days_of_week")
     private Set<DaysOfWeek> daysOfWeek;
@@ -37,7 +37,7 @@ public class RouteRecurringEntity {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof InstitutionEntity that)) return false;
+        if (!(o instanceof RouteRecurringEntity that)) return false;
         return id != null && id.equals(that.getId());
     }
 
