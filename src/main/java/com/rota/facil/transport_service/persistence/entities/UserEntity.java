@@ -49,4 +49,20 @@ public class UserEntity {
     public int hashCode() {
         return getClass().hashCode();
     }
+
+    public boolean isDriver() {
+        return this.role.equals(Role.DRIVER);
+    }
+
+    public boolean isStudent() {
+        return this.role.equals(Role.STUDENT);
+    }
+
+    public boolean isNotDriver() {
+        return !this.isDriver();
+    }
+
+    public boolean isNotStudent() {
+        return !this.isStudent();
+    }
 }
