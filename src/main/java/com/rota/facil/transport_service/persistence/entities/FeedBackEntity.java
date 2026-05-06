@@ -28,7 +28,9 @@ public class FeedBackEntity {
     @JoinColumn(name = "receiver_user_id")
     private UserEntity receiver;
 
-    private Integer rating;
+    private Double note;
+
+    private String feedback;
 
     @Builder.Default
     @CreationTimestamp
