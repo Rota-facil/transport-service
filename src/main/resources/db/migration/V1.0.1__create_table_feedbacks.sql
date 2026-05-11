@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS feedbacks_tb (
     sender_user_id UUID NOT NULL,
     receiver_user_id UUID NOT NULL,
     feedback TEXT NOT NULL,
-    note INTEGER NOT NULL,
+    note FLOAT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT feedbacks_users_sender FOREIGN KEY (sender_user_id) REFERENCES users_tb(user_id),
