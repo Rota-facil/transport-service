@@ -35,6 +35,9 @@ public class InstitutionEntity {
     @ManyToMany(mappedBy = "institutions")
     List<RouteEntity> routes;
 
+    @ManyToMany(mappedBy = "ignoredInstitutions")
+    List<TripEntity> trips;
+
     public void update(InstitutionEntity institutionEntity) {
         if (institutionEntity.getName() != null) this.name = institutionEntity.getName();
         if (institutionEntity.getLatitude() != null) this.latitude = institutionEntity.getLatitude();

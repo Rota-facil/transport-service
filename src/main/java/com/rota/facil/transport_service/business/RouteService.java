@@ -1,13 +1,13 @@
 package com.rota.facil.transport_service.business;
 
 import com.rota.facil.transport_service.domain.enums.DaysOfWeek;
-import com.rota.facil.transport_service.domain.exceptions.BoardPointNotFoundException;
-import com.rota.facil.transport_service.domain.exceptions.BusNotFoundException;
-import com.rota.facil.transport_service.domain.exceptions.InstitutionNotFoundException;
-import com.rota.facil.transport_service.domain.exceptions.RouteNotFoundException;
+import com.rota.facil.transport_service.domain.exceptions.*;
+import com.rota.facil.transport_service.http.client.IntelligenceHttpClient;
+import com.rota.facil.transport_service.http.client.mappers.IntelligenceMapper;
 import com.rota.facil.transport_service.http.dto.request.route.CreateBoardPointRouteRequestDTO;
-import com.rota.facil.transport_service.http.dto.request.route.CreateRouteRecurringRequestDTO;
+import com.rota.facil.transport_service.http.dto.request.route.CreateRouteRecurringBusRequestDTO;
 import com.rota.facil.transport_service.http.dto.request.route.CreateRouteRequestDTO;
+import com.rota.facil.transport_service.http.dto.response.client.intelligence.RouteInterpretationResponseDTO;
 import com.rota.facil.transport_service.http.dto.response.route.RouteResponseDTO;
 import com.rota.facil.transport_service.persistence.entities.*;
 import com.rota.facil.transport_service.persistence.mappers.RouteMapper;
@@ -30,36 +30,51 @@ public class RouteService {
     private final BusRepository busRepository;
     private final TripRepository tripRepository;
     private final TripStatusRepository tripStatusRepository;
+    private final IntelligenceHttpClient intelligenceHttpClient;
     private final RouteMapper routeMapper;
+    private final IntelligenceMapper intelligenceMapper;
 
     @Transactional
     public RouteResponseDTO register(CreateRouteRequestDTO request) {
         Set<InstitutionEntity> institutionsFound = institutionRepository.findAllSetById(request.institutionsIds());
+        List<BusEntity> busListFound = busRepository.findAllById(request.busIds());
 
         if (institutionsFound.size() != request.institutionsIds().size()) throw new InstitutionNotFoundException("Erro ao encontrar instituições selecionadas. Selecione apenas instituições existentes");
+        if (busListFound.size() != request.busIds().size()) throw new BusNotFoundException("Erro ao encontrar ônibus selecionado. Selecione apenas ônibus existentes");
 
         RouteEntity preSaved = routeMapper.map(request);
         preSaved.setInstitutions(institutionsFound);
-        preSaved.getRecurring().setRoute(preSaved);
 
-        CreateRouteRecurringRequestDTO recurringRequest = request.recurring();
+        List<RouteRecurringEntity> recurringEntity = new ArrayList<>();
 
-        BusEntity busFound = busRepository.findById(recurringRequest.busId())
-                .orElseThrow(BusNotFoundException::new);
-
-        RouteEntity saved = routeRepository.save(preSaved);
-
-        if (recurringRequest.daysOfWeek().contains(DaysOfWeek.getFromValueDay(LocalDate.now().getDayOfWeek().getValue()))) {
-
-            TripEntity tripSaved = tripRepository.save(
-                    TripEntity.builder()
-                            .route(saved)
-                            .bus(busFound)
+        for (BusEntity bus : busListFound) {
+            recurringEntity.add(
+                    RouteRecurringEntity.builder()
+                            .route(preSaved)
+                            .bus(bus)
                             .build()
             );
+        }
 
-            tripSaved.setTripStatus(new ArrayList<>());
-            tripSaved.getTripStatus().add(tripStatusRepository.save(TripStatusEntity.builder().trip(tripSaved).build()));
+        preSaved.setRecurring(recurringEntity);
+        RouteEntity saved = routeRepository.save(preSaved);
+
+        if (request.daysOfWeek().contains(DaysOfWeek.getFromValueDay(LocalDate.now().getDayOfWeek().getValue()))) {
+
+            List<TripEntity> tripEntities = new ArrayList<>();
+
+            for (BusEntity bus : busListFound) {
+                TripEntity createdTrip = TripEntity.builder()
+                        .route(saved)
+                        .bus(bus)
+                        .build();
+                createdTrip.setTripStatus(new ArrayList<>());
+                createdTrip.getTripStatus().add(TripStatusEntity.builder().trip(createdTrip).build());
+
+                tripEntities.add(createdTrip);
+            }
+
+            tripRepository.saveAll(tripEntities);
         }
 
         return routeMapper.map(saved);
@@ -74,6 +89,19 @@ public class RouteService {
                 .stream()
                 .map(routeMapper::map)
                 .toList();
+    }
+
+    public RouteInterpretationResponseDTO interpreterRoute(UUID routeId) {
+        RouteEntity routeFoud = this.fetchEntity(routeId);
+        List<TripEntity> tripsFound = tripRepository.findAllFinishedByRouteId(routeId);
+
+        if (tripsFound.isEmpty()) throw new TripNotFoundException("Esssa rota ainda não tem viagens finalizadas para poder gerar interpretação");
+
+        RouteInterpretationResponseDTO interpretationResponse = intelligenceHttpClient.generateRouteInterpretation(intelligenceMapper.map(routeFoud, tripsFound));
+
+        routeFoud.setInterpretation(interpretationResponse.routeInterpretation());
+        routeRepository.save(routeFoud);
+        return interpretationResponse;
     }
 
     public RouteResponseDTO addBoardPoints(UUID routeId, List<CreateBoardPointRouteRequestDTO> request) {

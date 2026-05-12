@@ -3,6 +3,7 @@ package com.rota.facil.transport_service.http.controllers;
 import com.rota.facil.transport_service.business.RouteService;
 import com.rota.facil.transport_service.http.dto.request.route.CreateBoardPointRouteRequestDTO;
 import com.rota.facil.transport_service.http.dto.request.route.CreateRouteRequestDTO;
+import com.rota.facil.transport_service.http.dto.response.client.intelligence.RouteInterpretationResponseDTO;
 import com.rota.facil.transport_service.http.dto.response.route.RouteResponseDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,11 @@ public class RouteController {
             @Valid @RequestBody List<CreateBoardPointRouteRequestDTO> request
     ) {
         return ResponseEntity.ok(routeService.addBoardPoints(routeId, request));
+    }
+
+    @PostMapping("/{routeId}/interpreter")
+    public ResponseEntity<RouteInterpretationResponseDTO> interpreterRoute(@PathVariable UUID routeId) {
+        return ResponseEntity.ok(routeService.interpreterRoute(routeId));
     }
 
     @GetMapping("/{routeId}")
