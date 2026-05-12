@@ -45,4 +45,14 @@ public interface InstitutionVisitedRepository extends JpaRepository<InstitutionV
         AND iv.going IS TRUE
     """)
     List<InstitutionVisitedEntity> findReturnByTripId(@Param("tripId") UUID tripId);
+
+    @Query("""
+        SELECT i.name FROM InstitutionVisitedEntity iv
+        INNER JOIN iv.institution i
+        INNER JOIN iv.trip t
+        WHERE t.id = :tripId
+        AND iv.going IS TRUE
+        AND iv.return_ IS TRUE
+    """)
+    List<String> findAllInstitutionsNameVisitedsByTripId(@Param("tripId") UUID tripId);
 }

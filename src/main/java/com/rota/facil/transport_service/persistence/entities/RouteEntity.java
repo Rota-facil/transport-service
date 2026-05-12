@@ -1,5 +1,6 @@
 package com.rota.facil.transport_service.persistence.entities;
 
+import com.rota.facil.transport_service.domain.enums.DaysOfWeek;
 import com.rota.facil.transport_service.domain.enums.Delay;
 import com.rota.facil.transport_service.domain.enums.Progress;
 import com.rota.facil.transport_service.domain.enums.Shift;
@@ -37,6 +38,8 @@ public class RouteEntity {
 
     private LocalTime returnFinish;
 
+    private String interpretation;
+
     @Builder.Default
     @CreationTimestamp
     @Column(name = "created_at")
@@ -50,11 +53,17 @@ public class RouteEntity {
     )
     private Set<InstitutionEntity> institutions;
 
+    @ElementCollection
+    @CollectionTable(name = "route_recurring_day_of_week_tb", joinColumns = @JoinColumn(name = "route_id"))
+    @Enumerated(EnumType.STRING)
+    @Column(name = "days_of_week")
+    private Set<DaysOfWeek> daysOfWeek;
+
     @OneToMany(mappedBy = "route", cascade = CascadeType.ALL)
     private List<BoardPointRouteEntity> boardPoints;
 
-    @OneToOne(mappedBy = "route", cascade = CascadeType.ALL)
-    private RouteRecurringEntity recurring;
+    @OneToMany(mappedBy = "route", cascade = CascadeType.ALL)
+    private List<RouteRecurringEntity> recurring;
 
     @OneToMany(mappedBy = "route")
     private List<TripEntity> trips;

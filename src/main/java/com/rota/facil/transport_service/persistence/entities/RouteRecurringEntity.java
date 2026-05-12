@@ -20,19 +20,13 @@ public class RouteRecurringEntity {
     @Column(name = "route_recurring_id")
     private UUID id;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "route_id")
     private RouteEntity route;
 
     @ManyToOne
     @JoinColumn(name = "bus_id")
     private BusEntity bus;
-
-    @ElementCollection
-    @CollectionTable(name = "route_recurring_day_of_week_tb", joinColumns = @JoinColumn(name = "route_recurring_id"))
-    @Enumerated(EnumType.STRING)
-    @Column(name = "days_of_week")
-    private Set<DaysOfWeek> daysOfWeek;
 
     @Override
     public boolean equals(Object o) {

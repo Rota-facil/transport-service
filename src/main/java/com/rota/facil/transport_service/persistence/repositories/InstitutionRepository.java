@@ -27,4 +27,13 @@ public interface InstitutionRepository extends JpaRepository<InstitutionEntity, 
         WHERE t.id = :tripId
     """)
     List<InstitutionEntity> findAllByTripId(@Param("tripId") UUID tripId);
+
+    @Query("""
+        SELECT i.name FROM InstitutionEntity i
+        INNER JOIN i.routes r
+        LEFT JOIN i.trips t
+        WHERE r.id = :routeId
+        AND t IS NULL
+    """)
+    List<String> findAllInstitutionsNameToBeVisitedByRouteId(@Param("routeId") UUID routeId);
 }

@@ -14,7 +14,8 @@ import java.util.UUID;
 public interface RouteRecurringRepository extends JpaRepository<RouteRecurringEntity, UUID> {
     @Query("""
         SELECT rr FROM RouteRecurringEntity rr
-        WHERE :daysOfWeek MEMBER OF rr.daysOfWeek
+        INNER JOIN rr.route r
+        WHERE :daysOfWeek MEMBER OF r.daysOfWeek
     """)
     List<RouteRecurringEntity> findAllRouteRecurringToday(@Param("daysOfWeek") DaysOfWeek daysOfWeek);
 }

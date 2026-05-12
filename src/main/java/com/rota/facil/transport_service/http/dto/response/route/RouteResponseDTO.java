@@ -1,5 +1,6 @@
 package com.rota.facil.transport_service.http.dto.response.route;
 
+import com.rota.facil.transport_service.domain.enums.DaysOfWeek;
 import com.rota.facil.transport_service.domain.enums.Shift;
 
 import java.time.LocalDateTime;
@@ -15,9 +16,10 @@ public record RouteResponseDTO(
         LocalTime return_,
         LocalTime goingFinish,
         LocalTime returnFinish,
+        String interpretation,
         LocalDateTime createdAt,
+        List<DaysOfWeek> daysOfWeek,
         Set<RouteInstitutionResponseDTO> institutions,
-        List<RouteBoardPointResponseDTO> boardPoints,
-        RouteRecurringResponseDTO recurring
+        List<RouteBoardPointResponseDTO> boardPoints
 ) {
 }
