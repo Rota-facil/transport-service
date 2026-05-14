@@ -4,7 +4,7 @@ services:
     container_name: transport-database
 
     environment:
-      POSTGRES_DB: ${DATASOURCE_NAME}
+      POSTGRES_DB: ${TRANSPORT_DATASOURCE_NAME}
       POSTGRES_USER: ${DATASOURCE_USERNAME}
       POSTGRES_PASSWORD: ${DATASOURCE_PASSWORD}
 
