@@ -7,6 +7,7 @@ import com.rota.facil.transport_service.http.client.mappers.IntelligenceMapper;
 import com.rota.facil.transport_service.http.dto.request.route.CreateBoardPointRouteRequestDTO;
 import com.rota.facil.transport_service.http.dto.request.route.CreateRouteRecurringBusRequestDTO;
 import com.rota.facil.transport_service.http.dto.request.route.CreateRouteRequestDTO;
+import com.rota.facil.transport_service.http.dto.request.user.CurrentUser;
 import com.rota.facil.transport_service.http.dto.response.client.intelligence.RouteInterpretationResponseDTO;
 import com.rota.facil.transport_service.http.dto.response.route.RouteResponseDTO;
 import com.rota.facil.transport_service.persistence.entities.*;
@@ -35,7 +36,7 @@ public class RouteService {
     private final IntelligenceMapper intelligenceMapper;
 
     @Transactional
-    public RouteResponseDTO register(CreateRouteRequestDTO request) {
+    public RouteResponseDTO register(CreateRouteRequestDTO request, CurrentUser currentUser) {
         Set<InstitutionEntity> institutionsFound = institutionRepository.findAllSetById(request.institutionsIds());
         List<BusEntity> busListFound = busRepository.findAllById(request.busIds());
 
@@ -44,6 +45,7 @@ public class RouteService {
 
         RouteEntity preSaved = routeMapper.map(request);
         preSaved.setInstitutions(institutionsFound);
+        preSaved.setPrefectureId(currentUser.prefectureId());
 
         List<RouteRecurringEntity> recurringEntity = new ArrayList<>();
 
@@ -80,12 +82,12 @@ public class RouteService {
         return routeMapper.map(saved);
     }
 
-    public RouteResponseDTO fetch(UUID routeId) {
-        return routeMapper.map(this.fetchEntity(routeId));
+    public RouteResponseDTO fetch(UUID routeId, CurrentUser currentUser) {
+        return routeMapper.map(this.fetchEntity(routeId, currentUser.prefectureId()));
     }
 
-    public List<RouteResponseDTO> list() {
-        return routeRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"))
+    public List<RouteResponseDTO> list(CurrentUser currentUser) {
+        return routeRepository.findAllByPrefectureId(currentUser.prefectureId())
                 .stream()
                 .map(routeMapper::map)
                 .toList();
@@ -104,8 +106,8 @@ public class RouteService {
         return interpretationResponse;
     }
 
-    public RouteResponseDTO addBoardPoints(UUID routeId, List<CreateBoardPointRouteRequestDTO> request) {
-        RouteEntity routeFound = this.fetchEntity(routeId);
+    public RouteResponseDTO addBoardPoints(UUID routeId, List<CreateBoardPointRouteRequestDTO> request, CurrentUser currentUser) {
+        RouteEntity routeFound = this.fetchEntity(routeId, currentUser.prefectureId());
 
         List<UUID> boardPointsIds = request.stream().map(CreateBoardPointRouteRequestDTO::boardPointId).toList();
 
@@ -149,6 +151,11 @@ public class RouteService {
 
     private RouteEntity fetchEntity(UUID routeId) {
         return routeRepository.findById(routeId)
+                .orElseThrow(RouteNotFoundException::new);
+    }
+
+    private RouteEntity fetchEntity(UUID routeId, UUID prefectureId) {
+        return routeRepository.findByIdAndPrefectureId(routeId, prefectureId)
                 .orElseThrow(RouteNotFoundException::new);
     }
 }

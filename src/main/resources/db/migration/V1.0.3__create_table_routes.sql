@@ -6,5 +6,6 @@ CREATE TABLE IF NOT EXISTS routes_tb (
     going_finish TIME NOT NULL,
     return_finish TIME NOT NULL,
     interpretation TEXT,
+    prefecture_id UUID NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
