@@ -7,6 +7,6 @@ import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface BoardPointEventMapper {
-    @Mapping(target = "id", source = "boardPointId")
+    @Mapping(target = "id", source = "boardId")
     BoardPointEntity map(BoardPointEventReceive eventReceive);
 }
