@@ -200,7 +200,7 @@ public class RabbitConfig {
 
     @Bean
     public Binding institutionDeletedBinding() {
-        return BindingBuilder.bind(this.institutionCreatedQueue()).to(this.placesExchange()).with(institutionDeletedRoutingKey);
+        return BindingBuilder.bind(this.institutionDeletedQueue()).to(this.placesExchange()).with(institutionDeletedRoutingKey);
     }
 
 
