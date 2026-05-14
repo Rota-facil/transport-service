@@ -3,7 +3,7 @@ package com.rota.facil.transport_service.messaging.dto.receive;
 import java.util.UUID;
 
 public record BoardPointEventReceive(
-        UUID boardPointId,
+        UUID boardId,
         String name,
         String latitude,
         String longitude
