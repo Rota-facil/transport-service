@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -41,4 +42,18 @@ public interface RouteRepository extends JpaRepository<RouteEntity, UUID> {
         AND ST_DWithin(i.geom, ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326)::geography, 10)
     """, nativeQuery = true)
     Optional<InstitutionEntity> findInstitutionByTripIdAndCoordinates(@Param("tripId") UUID tripId, @Param("longitude") double longitude, @Param("latitude") double latitude);
+
+    @Query("""
+        SELECT r FROM RouteEntity r
+        WHERE r.id = :routeId
+        AND r.prefectureId = :prefectureId
+    """)
+    Optional<RouteEntity> findByIdAndPrefectureId(@Param("routeId") UUID routeId, @Param("prefectureId") UUID prefectureId);
+
+    @Query("""
+        SELECT r FROM RouteEntity r
+        WHERE r.prefectureId = :prefectureId
+        ORDER BY r.createdAt DESC
+    """)
+    List<RouteEntity> findAllByPrefectureId(@Param("prefectureId") UUID prefectureId);
 }

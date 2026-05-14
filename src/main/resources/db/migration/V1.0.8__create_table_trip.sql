@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS trips_tb (
     route_id UUID NOT NULL,
     latitude DOUBLE PRECISION NOT NULL DEFAULT 0.0,
     longitude DOUBLE PRECISION NOT NULL DEFAULT 0.0,
+    prefecture_id UUID NOT NULL,
     reason_of_cancellation TEXT,
     created_at DATE NOT NULL DEFAULT CURRENT_DATE,
 

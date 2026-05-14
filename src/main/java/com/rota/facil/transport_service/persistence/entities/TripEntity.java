@@ -39,6 +39,9 @@ public class TripEntity {
     @Builder.Default
     private Double longitude = 0.0;
 
+    @Column(name = "prefecture_id")
+    private UUID prefectureId;
+
     @Builder.Default
     @CreationTimestamp
     @Column(name = "created_at")

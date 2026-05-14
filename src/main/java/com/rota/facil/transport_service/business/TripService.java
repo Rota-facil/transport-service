@@ -79,12 +79,13 @@ public class TripService {
         return tripMapper.map(saved);
     }
 
-    public TripResponseDTO fetch(UUID tripId) {
-        return tripMapper.map(this.fetchEntity(tripId));
+    public TripResponseDTO fetch(UUID tripId, CurrentUser currentUser) {
+        return tripMapper.map(this.fetchEntity(tripId, currentUser.prefectureId()));
     }
 
-    public List<TripResponseDTO> list() {
-        return tripRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"))
+
+    public List<TripResponseDTO> list(CurrentUser currentUser) {
+        return tripRepository.findAllByPrefectureId(currentUser.prefectureId())
                 .stream()
                 .map(tripMapper::map)
                 .toList();
@@ -98,11 +99,16 @@ public class TripService {
         if (tripUserRepository.existsByTripIdAndUserId(tripId, user.userId())) throw new UserAlreadyInTripException();
 
 
-        TripEntity tripFound = this.fetchEntity(tripId);
+        boolean userGoing = request.going() != null && request.going();
+        boolean userReturn = request.return_() != null && request.return_();
+
+        TripEntity tripFound = tripRepository.findNotStartedByIdAndPrefectureId(tripId, user.prefectureId())
+                .orElseThrow(TripNotFoundException::new);
+
 
         BusEntity bus = tripFound.getBus();
 
-        int passengers = tripUserRepository.countPassengersByTripId(tripId) + 1;
+        int passengers = tripUserRepository.countPassengersByTripIdAndGoingAndReturn(tripId, userGoing, userReturn) + 1;
 
         if (passengers > bus.getCapacity()) throw new MaxBusCapacityException("Não é possível se inscrever nessa viagem porque a lista de passageiros já está lotada");
 
@@ -123,8 +129,8 @@ public class TripService {
                         .user(userFound)
                         .institution(institutionFound)
                         .boardPoint(boardPointFound)
-                        .going(request.going() != null && request.going())
-                        .return_(request.return_() != null && request.return_())
+                        .going(userGoing)
+                        .return_(userReturn)
                         .build()
         );
 
@@ -352,6 +358,11 @@ public class TripService {
 
     private TripEntity fetchEntity(UUID tripId) {
         return tripRepository.findById(tripId)
+                .orElseThrow(TripNotFoundException::new);
+    }
+
+    private TripEntity fetchEntity(UUID tripId, UUID prefectureId) {
+        return tripRepository.findByIdAndPrefectureId(tripId, prefectureId)
                 .orElseThrow(TripNotFoundException::new);
     }
 }

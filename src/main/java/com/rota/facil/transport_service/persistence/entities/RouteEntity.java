@@ -40,6 +40,9 @@ public class RouteEntity {
 
     private String interpretation;
 
+    @Column(name = "prefecture_id")
+    private UUID prefectureId;
+
     @Builder.Default
     @CreationTimestamp
     @Column(name = "created_at")

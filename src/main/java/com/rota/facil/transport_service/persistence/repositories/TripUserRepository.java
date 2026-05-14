@@ -26,8 +26,10 @@ public interface TripUserRepository extends JpaRepository<TripUserEntity, UUID> 
         SELECT COUNT(tu) FROM TripUserEntity tu
         INNER JOIN tu.trip t
         WHERE t.id = :tripId
+        AND tu.going = :going
+        AND tu.return_ = :return
     """)
-    int countPassengersByTripId(@Param("tripId") UUID tripId);
+    int countPassengersByTripIdAndGoingAndReturn(@Param("tripId") UUID tripId, @Param("going") boolean going, @Param("return") boolean return_);
 
     @Query("""
         SELECT u.email FROM TripUserEntity tu
