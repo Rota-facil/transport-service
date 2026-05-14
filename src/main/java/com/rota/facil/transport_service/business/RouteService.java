@@ -69,6 +69,7 @@ public class RouteService {
                 TripEntity createdTrip = TripEntity.builder()
                         .route(saved)
                         .bus(bus)
+                        .prefectureId(currentUser.prefectureId())
                         .build();
                 createdTrip.setTripStatus(new ArrayList<>());
                 createdTrip.getTripStatus().add(TripStatusEntity.builder().trip(createdTrip).build());

@@ -21,11 +21,6 @@ import java.util.UUID;
 public class TripController {
     private final TripService tripService;
 
-//    @PostMapping("/register")
-//    public ResponseEntity<TripResponseDTO> createTrip(@Valid @RequestBody CreateTripRequestDTO request) {
-//        return ResponseEntity.ok(tripService.register(request));
-//    }
-
     @PostMapping("/process")
     public ResponseEntity<Void> processTrip(
             @RequestParam UUID tripId,
@@ -63,8 +58,11 @@ public class TripController {
     }
 
     @GetMapping("/{tripId}")
-    public ResponseEntity<TripResponseDTO> fetchTrip(@PathVariable UUID tripId) {
-        return ResponseEntity.ok(tripService.fetch(tripId));
+    public ResponseEntity<TripResponseDTO> fetchTrip(
+            @PathVariable UUID tripId,
+            @AuthenticationPrincipal CurrentUser currentUser
+    ) {
+        return ResponseEntity.ok(tripService.fetch(tripId, currentUser));
     }
 
     @GetMapping("/my-trips")
@@ -74,8 +72,10 @@ public class TripController {
 
 
     @GetMapping
-    public ResponseEntity<List<TripResponseDTO>> listTrip() {
-        return ResponseEntity.ok(tripService.list());
+    public ResponseEntity<List<TripResponseDTO>> listTrip(
+            @AuthenticationPrincipal CurrentUser currentUser
+    ) {
+        return ResponseEntity.ok(tripService.list(currentUser));
     }
 
 }

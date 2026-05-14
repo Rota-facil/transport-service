@@ -30,6 +30,7 @@ public class TripSchedule {
             TripEntity preSavedTrip = TripEntity.builder()
                     .route(routeRecurring.getRoute())
                     .bus(routeRecurring.getBus())
+                    .prefectureId(routeRecurring.getRoute().getPrefectureId())
                     .tripStatus(new ArrayList<>())
                     .build();
             preSavedTrip.getTripStatus().add(TripStatusEntity.builder().trip(preSavedTrip).build());

@@ -36,4 +36,34 @@ public interface TripRepository extends JpaRepository<TripEntity, UUID> {
         AND ts.progress = com.rota.facil.transport_service.domain.enums.Progress.RETURN_FINISHED
     """)
     List<TripEntity> findAllFinishedByRouteId(@Param("routeId") UUID routeId);
+
+    @Query("""
+        SELECT t FROM TripEntity t
+        INNER JOIN t.tripStatus ts
+        WHERE t.id = :tripId
+        AND ts.progress NOT IN (com.rota.facil.transport_service.domain.enums.Progress.STARTED)
+    """)
+    Optional<TripEntity> findNotStartedById(@Param("tripId") UUID tripId);
+
+    @Query("""
+        SELECT t FROM TripEntity t
+        INNER JOIN t.tripStatus ts
+        WHERE t.id = :tripId
+        AND t.prefectureId = :prefectureId
+        AND ts.progress NOT IN (com.rota.facil.transport_service.domain.enums.Progress.STARTED)
+    """)
+    Optional<TripEntity> findNotStartedByIdAndPrefectureId(@Param("tripId") UUID tripId, @Param("prefectureId") UUID prefectureId);
+
+    @Query("""
+        SELECT t FROM TripEntity t
+        WHERE t.id = :tripId
+        AND  t.prefectureId = :prefectureId
+    """)
+    Optional<TripEntity> findByIdAndPrefectureId(@Param("tripId") UUID tripId, @Param("prefectureId") UUID prefectureId);
+
+    @Query("""
+        SELECT t FROM TripEntity t
+        WHERE t.prefectureId = :prefectureId
+    """)
+    List<TripEntity> findAllByPrefectureId(@Param("prefectureId") UUID prefectureId);
 }
