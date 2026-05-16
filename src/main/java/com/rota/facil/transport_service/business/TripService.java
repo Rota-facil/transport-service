@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.*;
 
 @Service
@@ -161,17 +162,7 @@ public class TripService {
 
         if (tripStatusRepository.isTripInitOrCancelled(tripFound.getId())) throw new TripAlreadyStatedOrCancelledException();
 
-        RouteEntity route = tripFound.getRoute();
-
-        LocalTime timeToStarted = route.getGoing();
-        LocalTime realTimeStated = LocalTime.now();
-
-        Delay delay;
-
-        if (realTimeStated.isAfter(timeToStarted) && ChronoUnit.MINUTES.between(timeToStarted, realTimeStated) <= INIT_TRIP_AFTER_MINUTES) delay = Delay.LATE;
-        else if (realTimeStated.isBefore(timeToStarted) && ChronoUnit.MINUTES.between(realTimeStated, timeToStarted) <= INIT_TRIP_BEFORE_MINUTES) delay = Delay.EARLY;
-        else if (realTimeStated.equals(timeToStarted)) delay = Delay.PUNCTUAL;
-        else throw new InvalidTimeToInitTrip("Você só pode iniciar uma viagem com " + INIT_TRIP_BEFORE_MINUTES + " minutos adiantados ou " + INIT_TRIP_AFTER_MINUTES + " minutos de atraso");
+        Delay delay = this.getDelay(tripFound);
 
         tripFound.getTripStatus().add(
                 TripStatusEntity.builder()
@@ -182,6 +173,22 @@ public class TripService {
         );
 
         return tripMapper.map(tripRepository.save(tripFound));
+    }
+
+    private Delay getDelay(TripEntity tripFound) {
+        RouteEntity route = tripFound.getRoute();
+        LocalTime timeToStarted = route.getGoing();
+        LocalTime timeToReturn = route.getReturn_();
+
+        LocalTime realTimeStated = LocalTime.now();
+
+        Delay delay;
+
+        if (realTimeStated.isAfter(timeToStarted) && realTimeStated.isBefore(timeToReturn)) delay = Delay.LATE;
+        else if (realTimeStated.isBefore(timeToStarted) && realTimeStated.isAfter(timeToStarted.minusMinutes(6L))) delay = Delay.EARLY;
+        else if (realTimeStated.equals(timeToStarted)) delay = Delay.PUNCTUAL;
+        else throw new InvalidTimeToInitTrip("Você só pode iniciar uma viagem com 6 minutos adiantados ou não é possível iniciar uma viagem quando o horário de volta já deveria ser iniciado");
+        return delay;
     }
 
 
