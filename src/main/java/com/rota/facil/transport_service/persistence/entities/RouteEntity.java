@@ -72,21 +72,7 @@ public class RouteEntity {
     private List<TripEntity> trips;
 
     public Delay calculateDelay(LocalTime arrivalDate, Progress progress) {
-        Delay delay = null;
-
-        switch (progress) {
-            case RETURN_STARTED -> {
-                delay = this.buildDelay(arrivalDate, this.returnFinish.plusMinutes(5L));
-            }
-
-            case STARTED_FINISHED -> {
-                delay = this.buildDelay(arrivalDate, this.goingFinish.plusMinutes(4L));
-            }
-
-            default -> throw new IllegalArgumentException();
-        }
-
-        return delay;
+        return this.buildDelay(arrivalDate, this.returnFinish.plusMinutes(5L));
     }
 
     private Delay buildDelay(LocalTime arrivalDate, LocalTime timeToCompare) {

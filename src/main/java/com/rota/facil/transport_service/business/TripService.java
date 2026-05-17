@@ -275,7 +275,7 @@ public class TripService {
             List<BoardPointVisitedEntity> boardPointsVisited  = boardPointVisitedRepository.findReturnByTripId(trip.getId());
 
 
-            boardPointsVisited.add(boardPointVisitedRepository.save(newBoardPointVisitedFound));
+//            boardPointsVisited.add(boardPointVisitedRepository.save(newBoardPointVisitedFound));
 
             boolean allBoardPointsWhereVisitedInReturn = (boardPointsToBeVisited.size() == boardPointsVisited.size());
 
@@ -325,7 +325,7 @@ public class TripService {
 
         if (tripStatusRepository.existsByTripIdAndProgress(trip.getId(), progress)) return;
 
-        institutionsVisited.add(institutionVisitedRepository.save(newInstitutionVisitedFound));
+//        institutionsVisited.add(institutionVisitedRepository.save(newInstitutionVisitedFound));
 
         boolean allInstitutionsWhereVisited = (institutionsToBeVisited.size() == institutionsVisited.size());
 

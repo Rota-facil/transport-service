@@ -34,6 +34,8 @@ public class TripStatusEntity {
     @Enumerated(EnumType.STRING)
     private Delay delay = Delay.PUNCTUAL;
 
+    private String description = Progress.NOT_STARTED.getTitle();
+
     @Builder.Default
     @CreationTimestamp
     @Column(name = "created_at")
