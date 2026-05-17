@@ -34,6 +34,7 @@ public class TripStatusEntity {
     @Enumerated(EnumType.STRING)
     private Delay delay = Delay.PUNCTUAL;
 
+    @Builder.Default
     private String description = Progress.NOT_STARTED.getTitle();
 
     @Builder.Default

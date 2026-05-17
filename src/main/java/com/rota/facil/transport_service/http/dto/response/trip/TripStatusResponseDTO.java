@@ -10,6 +10,7 @@ public record TripStatusResponseDTO(
         UUID id,
         Progress progress,
         Delay delay,
+        String description,
         LocalDateTime createdAt
 ) {
 }
