@@ -21,4 +21,13 @@ public interface BoardPointRepository extends JpaRepository<BoardPointEntity, UU
         WHERE b.id IN (:boardPointsIds)
     """)
     Map<UUID, BoardPointEntity> findAllMapById(@Param("boardPointsIds") List<UUID> boardPointsIds);
+
+    @Query("""
+        SELECT b FROM BoardPointEntity b
+        INNER JOIN b.boardPointRoutes br
+        INNER JOIN br.route r
+        INNER JOIN r.trips t
+        WHERE t.id = :tripId
+    """)
+    List<BoardPointEntity> findAllByTripId(@Param("tripId") UUID tripId);
 }

@@ -7,6 +7,7 @@ import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.PrecisionModel;
 
+import java.util.List;
 import java.util.UUID;
 
 @Builder
@@ -28,6 +29,9 @@ public class BoardPointEntity {
 
     @Column(columnDefinition = "geography(POINT, 4326)")
     private Point geom;
+
+    @OneToMany(mappedBy = "boardPoint")
+    public List<BoardPointRouteEntity> boardPointRoutes;
 
     public void update(BoardPointEntity boardPointEntity) {
         if (boardPointEntity.getName() != null) this.name = boardPointEntity.getName();

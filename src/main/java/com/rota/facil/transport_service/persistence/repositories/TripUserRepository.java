@@ -1,5 +1,6 @@
 package com.rota.facil.transport_service.persistence.repositories;
 
+import com.rota.facil.transport_service.persistence.entities.BoardPointEntity;
 import com.rota.facil.transport_service.persistence.entities.InstitutionEntity;
 import com.rota.facil.transport_service.persistence.entities.TripUserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -62,4 +63,40 @@ public interface TripUserRepository extends JpaRepository<TripUserEntity, UUID> 
         WHERE t.id = :tripId
     """)
     List<InstitutionEntity> findAllInstitutionsByTripId(@Param("tripId") UUID tripId);
+
+    @Query("""
+        SELECT i FROM TripUserEntity tu
+        INNER JOIN tu.institution i
+        INNER JOIN tu.trip t
+        WHERE t.id = :tripId
+        AND tu.going IS TRUE
+    """)
+    List<InstitutionEntity> findAllInstitutionsGoingByTripId(@Param("tripId") UUID tripId);
+
+    @Query("""
+        SELECT i FROM TripUserEntity tu
+        INNER JOIN tu.institution i
+        INNER JOIN tu.trip t
+        WHERE t.id = :tripId
+        AND tu.return_ IS TRUE
+    """)
+    List<InstitutionEntity> findAllInstitutionsReturnByTripId(@Param("tripId") UUID tripId);
+
+    @Query("""
+        SELECT b FROM TripUserEntity tu
+        INNER JOIN tu.boardPoint b
+        INNER JOIN tu.trip t
+        WHERE t.id = :tripId
+        AND tu.going IS TRUE
+    """)
+    List<BoardPointEntity> findAllBoardPointsGoingByTripId(@Param("tripId") UUID tripId);
+
+    @Query("""
+        SELECT b FROM TripUserEntity tu
+        INNER JOIN tu.boardPoint b
+        INNER JOIN tu.trip t
+        WHERE t.id = :tripId
+        AND tu.return_ IS TRUE
+    """)
+    List<BoardPointEntity> findAllBoardPointsReturnByTripId(@Param("tripId") UUID tripId);
 }

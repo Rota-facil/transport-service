@@ -113,8 +113,6 @@ public class TripService {
 
         if (passengers > bus.getCapacity()) throw new MaxBusCapacityException("Não é possível se inscrever nessa viagem porque a lista de passageiros já está lotada");
 
-        if (passengers == bus.getCapacity()) this.registerIgnoredInstitutionsForTrip(tripFound);
-
         UserEntity userFound = userRepository.findById(user.userId())
                 .orElseThrow(UserNotFoundException::new);
 
@@ -139,20 +137,8 @@ public class TripService {
         return tripUserMapper.map(saved);
     }
 
-    private void registerIgnoredInstitutionsForTrip(TripEntity tripFound) {
-        List<InstitutionEntity> allInstitutionsToBeVisitedInRoute = new ArrayList<>(institutionRepository.findAllByTripId(tripFound.getId()));
-        List<InstitutionEntity> allInstitutionsShouldActuallyBeVisited = tripUserRepository.findAllInstitutionsByTripId(tripFound.getId());
 
-        allInstitutionsToBeVisitedInRoute.removeAll(allInstitutionsShouldActuallyBeVisited);
-
-        List<InstitutionEntity> ignoredInstitutions = List.copyOf(allInstitutionsToBeVisitedInRoute);
-
-        tripFound.setIgnoredInstitutions(new HashSet<>());
-
-        for (InstitutionEntity ignoredInstitution : ignoredInstitutions) tripFound.getIgnoredInstitutions().add(ignoredInstitution);
-        tripRepository.save(tripFound);
-    }
-
+    @Transactional
     public TripResponseDTO init(UUID tripId, CurrentUser currentUser) {
         UserEntity driverFound = userRepository.findDriverById(currentUser.userId())
                 .orElseThrow(UserNotFoundException::new);
@@ -172,25 +158,11 @@ public class TripService {
                         .build()
         );
 
+        this.registerIgnoredInstitutionsForGoingTrip(tripFound);
+        this.registerIgnoredBoardPointsForGoingTrip(tripFound);
+
         return tripMapper.map(tripRepository.save(tripFound));
     }
-
-    private Delay getDelay(TripEntity tripFound) {
-        RouteEntity route = tripFound.getRoute();
-        LocalTime timeToStarted = route.getGoing();
-        LocalTime timeToReturn = route.getReturn_();
-
-        LocalTime realTimeStated = LocalTime.now();
-
-        Delay delay;
-
-        if (realTimeStated.isAfter(timeToStarted) && realTimeStated.isBefore(timeToReturn)) delay = Delay.LATE;
-        else if (realTimeStated.isBefore(timeToStarted) && realTimeStated.isAfter(timeToStarted.minusMinutes(6L))) delay = Delay.EARLY;
-        else if (realTimeStated.equals(timeToStarted)) delay = Delay.PUNCTUAL;
-        else throw new InvalidTimeToInitTrip("Você só pode iniciar uma viagem com 6 minutos adiantados ou não é possível iniciar uma viagem quando o horário de volta já deveria ser iniciado");
-        return delay;
-    }
-
 
     @Transactional
     public TripResponseDTO cancel(UUID tripId, CurrentUser currentUser, CancelTripRequestDTO request) {
@@ -302,7 +274,10 @@ public class TripService {
             this.setStatusTrip(trip, Progress.INSTITUTION_ARRIVAL, institution.getName(), arrivalDate, routeFound);
             if (tripStatusRepository.existsByTripIdAndProgress(trip.getId(), Progress.STARTED_FINISHED)) return;
 
-            if (this.allInstitutionsAndBoardPointsWhereVisitedInGoing(routeFound, trip)) this.setStatusTrip(trip, Progress.STARTED_FINISHED, arrivalDate, routeFound);
+            if (this.allInstitutionsAndBoardPointsWhereVisitedInGoing(routeFound, trip)) {
+                this.setStatusTrip(trip, Progress.STARTED_FINISHED, arrivalDate, routeFound);
+                this.registerIgnoredInstitutionsForReturnTrip(trip);
+            }
         }
 
         if (isReturn) {
@@ -313,6 +288,85 @@ public class TripService {
         }
 
     }
+
+    private Delay getDelay(TripEntity tripFound) {
+        RouteEntity route = tripFound.getRoute();
+        LocalTime timeToStarted = route.getGoing();
+        LocalTime timeToReturn = route.getReturn_();
+
+        LocalTime realTimeStated = LocalTime.now();
+
+        Delay delay;
+
+        if (realTimeStated.isAfter(timeToStarted) && realTimeStated.isBefore(timeToReturn)) delay = Delay.LATE;
+        else if (realTimeStated.isBefore(timeToStarted) && realTimeStated.isAfter(timeToStarted.minusMinutes(6L))) delay = Delay.EARLY;
+        else if (realTimeStated.equals(timeToStarted)) delay = Delay.PUNCTUAL;
+        else throw new InvalidTimeToInitTrip("Você só pode iniciar uma viagem com 6 minutos adiantados ou não é possível iniciar uma viagem quando o horário de volta já deveria ser iniciado");
+        return delay;
+    }
+
+
+    @Transactional
+    protected void registerIgnoredInstitutionsForGoingTrip(TripEntity tripFound) {
+        this.registerIgnoredInstitutionsForTrip(tripFound, true);
+    }
+
+    @Transactional
+    protected void registerIgnoredInstitutionsForReturnTrip(TripEntity tripFound) {
+        this.registerIgnoredInstitutionsForTrip(tripFound, false);
+    }
+
+    @Transactional
+    protected void registerIgnoredInstitutionsForTrip(TripEntity tripFound, boolean isGoing) {
+        List<InstitutionEntity> allInstitutionsToBeVisitedInRoute = new ArrayList<>(institutionRepository.findAllByTripId(tripFound.getId()));
+        List<InstitutionEntity> allInstitutionsShouldActuallyBeVisited;
+
+        if (isGoing) {
+            allInstitutionsShouldActuallyBeVisited = tripUserRepository.findAllInstitutionsGoingByTripId(tripFound.getId());
+        }
+        else {
+            tripFound.getIgnoredInstitutions().clear();
+            allInstitutionsShouldActuallyBeVisited = tripUserRepository.findAllInstitutionsReturnByTripId(tripFound.getId());
+        }
+
+        allInstitutionsToBeVisitedInRoute.removeAll(allInstitutionsShouldActuallyBeVisited);
+
+        List<InstitutionEntity> ignoredInstitutions = List.copyOf(allInstitutionsToBeVisitedInRoute);
+
+        tripFound.setIgnoredInstitutions(new HashSet<>());
+
+        for (InstitutionEntity ignoredInstitution : ignoredInstitutions) tripFound.getIgnoredInstitutions().add(ignoredInstitution);
+        tripRepository.save(tripFound);
+    }
+
+    @Transactional
+    protected void registerIgnoredBoardPointsForGoingTrip(TripEntity tripFound) {
+        this.registerIgnoredBoardPointsForTrip(tripFound, true);
+    }
+
+    @Transactional
+    protected void registerIgnoredBoardPointsForTrip(TripEntity tripFound, boolean isGoing) {
+        List<BoardPointEntity> allBoardPointsToBeVisitedInRoute = new ArrayList<>(boardPointRepository.findAllByTripId(tripFound.getId()));
+        List<BoardPointEntity> allBoardPointsShouldActuallyBeVisited;
+
+        if (isGoing) {
+            allBoardPointsShouldActuallyBeVisited = tripUserRepository.findAllBoardPointsGoingByTripId(tripFound.getId());
+        }
+        else {
+            tripFound.getIgnoredBoardPoints().clear();
+            allBoardPointsShouldActuallyBeVisited = tripUserRepository.findAllBoardPointsReturnByTripId(tripFound.getId());
+        }
+
+        allBoardPointsToBeVisitedInRoute.removeAll(allBoardPointsShouldActuallyBeVisited);
+
+        List<BoardPointEntity> ignoredBoardPoints = List.copyOf(allBoardPointsToBeVisitedInRoute);
+
+        tripFound.setIgnoredBoardPoints(new HashSet<>());
+
+        for (BoardPointEntity ignoredBoardPoint : ignoredBoardPoints) tripFound.getIgnoredBoardPoints().add(ignoredBoardPoint);
+        tripRepository.save(tripFound);
+    }
+
 
     private boolean allInstitutionsAndBoardPointsWhereVisitedInGoing(RouteEntity route, TripEntity trip) {
         return this.allInstitutionsWhereVisited(route, trip, true, false) && this.allBoardPointsWhereVisited(route, trip, true, false);
