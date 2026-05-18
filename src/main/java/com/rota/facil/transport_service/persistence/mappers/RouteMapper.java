@@ -1,6 +1,9 @@
 package com.rota.facil.transport_service.persistence.mappers;
 
 import com.rota.facil.transport_service.http.dto.request.route.CreateRouteRequestDTO;
+import com.rota.facil.transport_service.http.dto.request.route.PointRequestDTO;
+import com.rota.facil.transport_service.http.dto.request.route.RouteHeatMapRequestDTO;
+import com.rota.facil.transport_service.http.dto.request.user.CurrentUser;
 import com.rota.facil.transport_service.http.dto.response.route.RouteBoardPointResponseDTO;
 import com.rota.facil.transport_service.http.dto.response.route.RouteResponseDTO;
 import com.rota.facil.transport_service.persistence.entities.BoardPointEntity;
@@ -41,4 +44,6 @@ public interface RouteMapper {
                 )
                 .toList();
     }
+
+    RouteHeatMapRequestDTO map(UUID routeId, List<PointRequestDTO> points, CurrentUser currentUser);
 }

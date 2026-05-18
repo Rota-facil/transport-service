@@ -5,6 +5,7 @@ import com.rota.facil.transport_service.http.dto.request.route.CreateBoardPointR
 import com.rota.facil.transport_service.http.dto.request.route.CreateRouteRequestDTO;
 import com.rota.facil.transport_service.http.dto.request.user.CurrentUser;
 import com.rota.facil.transport_service.http.dto.response.client.intelligence.RouteInterpretationResponseDTO;
+import com.rota.facil.transport_service.http.dto.response.route.RouteHeatMapResponseDTO;
 import com.rota.facil.transport_service.http.dto.response.route.RouteResponseDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -49,6 +50,14 @@ public class RouteController {
             @AuthenticationPrincipal CurrentUser currentUser
     ) {
         return ResponseEntity.ok(routeService.fetch(routeId, currentUser));
+    }
+
+    @PostMapping("/{routeId}/board-point/heat-map")
+    public ResponseEntity<RouteHeatMapResponseDTO> generateRouteBoardPointHeatMap(
+            @PathVariable UUID routeId,
+            @AuthenticationPrincipal CurrentUser currentUser
+    ) {
+        return ResponseEntity.ok(routeService.generateRouteBoardPointHeatMap(routeId, currentUser));
     }
 
     @GetMapping

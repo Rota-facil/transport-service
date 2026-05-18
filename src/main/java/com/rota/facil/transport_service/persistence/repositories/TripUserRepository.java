@@ -1,5 +1,6 @@
 package com.rota.facil.transport_service.persistence.repositories;
 
+import com.rota.facil.transport_service.http.dto.request.route.PointRequestDTO;
 import com.rota.facil.transport_service.persistence.entities.BoardPointEntity;
 import com.rota.facil.transport_service.persistence.entities.InstitutionEntity;
 import com.rota.facil.transport_service.persistence.entities.TripUserEntity;
@@ -99,4 +100,16 @@ public interface TripUserRepository extends JpaRepository<TripUserEntity, UUID> 
         AND tu.return_ IS TRUE
     """)
     List<BoardPointEntity> findAllBoardPointsReturnByTripId(@Param("tripId") UUID tripId);
+
+    @Query("""
+        SELECT b FROM TripUserEntity tu
+        INNER JOIN tu.boardPoint b
+        INNER JOIN tu.trip t
+        INNER JOIN t.tripStatus ts
+        INNER JOIN t.route r
+        WHERE r.id = :routeId
+        AND ts.progress = com.rota.facil.transport_service.domain.enums.Progress.RETURN_FINISHED
+        ORDER BY b.geom
+    """)
+    List<BoardPointEntity> findAllBoardPointsOfTripsFinishedByRouteId(@Param("routeId") UUID routeId);
 }

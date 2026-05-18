@@ -4,17 +4,15 @@ import com.rota.facil.transport_service.domain.enums.DaysOfWeek;
 import com.rota.facil.transport_service.domain.exceptions.*;
 import com.rota.facil.transport_service.http.client.IntelligenceHttpClient;
 import com.rota.facil.transport_service.http.client.mappers.IntelligenceMapper;
-import com.rota.facil.transport_service.http.dto.request.route.CreateBoardPointRouteRequestDTO;
-import com.rota.facil.transport_service.http.dto.request.route.CreateRouteRecurringBusRequestDTO;
-import com.rota.facil.transport_service.http.dto.request.route.CreateRouteRequestDTO;
+import com.rota.facil.transport_service.http.dto.request.route.*;
 import com.rota.facil.transport_service.http.dto.request.user.CurrentUser;
 import com.rota.facil.transport_service.http.dto.response.client.intelligence.RouteInterpretationResponseDTO;
+import com.rota.facil.transport_service.http.dto.response.route.RouteHeatMapResponseDTO;
 import com.rota.facil.transport_service.http.dto.response.route.RouteResponseDTO;
 import com.rota.facil.transport_service.persistence.entities.*;
 import com.rota.facil.transport_service.persistence.mappers.RouteMapper;
 import com.rota.facil.transport_service.persistence.repositories.*;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +32,7 @@ public class RouteService {
     private final IntelligenceHttpClient intelligenceHttpClient;
     private final RouteMapper routeMapper;
     private final IntelligenceMapper intelligenceMapper;
+    private final TripUserRepository tripUserRepository;
 
     @Transactional
     public RouteResponseDTO register(CreateRouteRequestDTO request, CurrentUser currentUser) {
@@ -148,6 +147,18 @@ public class RouteService {
         routeFound.getBoardPoints().addAll(boardPointRoutes);
 
         return routeMapper.map(routeRepository.save(routeFound));
+    }
+
+    public RouteHeatMapResponseDTO generateRouteBoardPointHeatMap(UUID routeId, CurrentUser currentUser) {
+        RouteEntity routeFound = routeRepository.findByIdAndPrefectureId(routeId, currentUser.prefectureId())
+                        .orElseThrow(RouteNotFoundException::new);
+
+        List<PointRequestDTO> points = tripUserRepository.findAllBoardPointsOfTripsFinishedByRouteId(routeId)
+                        .stream()
+                        .map(boardPoint -> new PointRequestDTO(boardPoint.getLatitude(), boardPoint.getLongitude()))
+                        .toList();
+
+        return intelligenceHttpClient.generateRouteHeatMap(routeMapper.map(routeFound.getId(), points, currentUser));
     }
 
     private RouteEntity fetchEntity(UUID routeId) {
