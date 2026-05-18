@@ -101,15 +101,15 @@ public interface TripUserRepository extends JpaRepository<TripUserEntity, UUID> 
     """)
     List<BoardPointEntity> findAllBoardPointsReturnByTripId(@Param("tripId") UUID tripId);
 
-    @Query("""
-        SELECT b FROM TripUserEntity tu
-        INNER JOIN tu.boardPoint b
-        INNER JOIN tu.trip t
-        INNER JOIN t.tripStatus ts
-        INNER JOIN t.route r
-        WHERE r.id = :routeId
-        AND ts.progress = com.rota.facil.transport_service.domain.enums.Progress.RETURN_FINISHED
-        ORDER BY b.geom
-    """)
+    @Query(value = """
+    select b.* from trip_users_tb tu
+    INNER JOIN board_points_tb b USING(board_point_id)
+    INNER JOIN trips_tb t USING(trip_id)
+    INNER JOIN trip_status_tb ts USING(trip_id)
+    INNER JOIN routes_tb r USING(route_id)
+    WHERE r.route_id = :routeId
+    AND ts.progress = 'RETURN_FINISHED'
+    ORDER BY geom;
+    """, nativeQuery = true)
     List<BoardPointEntity> findAllBoardPointsOfTripsFinishedByRouteId(@Param("routeId") UUID routeId);
 }

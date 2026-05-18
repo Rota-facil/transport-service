@@ -18,5 +18,5 @@ public interface IntelligenceHttpClient {
     RouteInterpretationResponseDTO generateRouteInterpretation(@RequestBody RouteInformationRequestDTO request);
 
     @PostExchange("/route/heat-map")
-    RouteHeatMapResponseDTO generateRouteHeatMap(RouteHeatMapRequestDTO request);
+    RouteHeatMapResponseDTO generateRouteHeatMap(@RequestBody RouteHeatMapRequestDTO request);
 }
