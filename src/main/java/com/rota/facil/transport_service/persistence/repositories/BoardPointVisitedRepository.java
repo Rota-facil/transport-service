@@ -30,4 +30,13 @@ public interface BoardPointVisitedRepository extends JpaRepository<BoardPointVis
         AND bpv.return_ IS TRUE
     """)
     List<BoardPointVisitedEntity> findReturnByTripId(@Param("tripId") UUID tripId);
+
+    @Query("""
+        SELECT bpv FROM BoardPointVisitedEntity bpv
+        INNER JOIN bpv.trip t
+        WHERE t.id = :tripId
+        AND bpv.going = :going
+        AND bpv.return_ = :return_
+    """)
+    List<BoardPointVisitedEntity> findReturnByTripId(@Param("tripId") UUID tripId, @Param("going") boolean going, @Param("return_") boolean return_);
 }
