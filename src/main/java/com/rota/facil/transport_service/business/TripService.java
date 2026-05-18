@@ -263,28 +263,28 @@ public class TripService {
         boolean isGoing = this.inferGoingOrReturn(arrivalDate.toLocalTime(), routeFound.getGoing(), routeFound.getGoingFinish());
         boolean isReturn = this.inferGoingOrReturn(arrivalDate.toLocalTime(), routeFound.getReturn_(), routeFound.getReturnFinish());
 
-        Set<BoardPointEntity> boardPointsToBeVisited = this.fetchBoardPointToBeVisited(routeFound, trip);
+        newBoardPointVisitedFound.setGoing(isGoing);
+        newBoardPointVisitedFound.setReturn_(isReturn);
 
         if (isGoing) {
-            newBoardPointVisitedFound.setGoing(true);
-            boardPointVisitedRepository.save(newBoardPointVisitedFound);
+            this.setStatusTrip(trip, Progress.BOARD_POINT_ARRIVAL, boardPoint.getName(), arrivalDate, routeFound);
+            return;
         }
 
         if (isReturn) {
-            newBoardPointVisitedFound.setReturn_(true);
+            this.setStatusTrip(trip, Progress.BOARD_POINT_ARRIVAL, boardPoint.getName(), arrivalDate, routeFound);
+
+            Set<BoardPointEntity> boardPointsToBeVisited = this.fetchBoardPointToBeVisited(routeFound, trip);
             List<BoardPointVisitedEntity> boardPointsVisited  = boardPointVisitedRepository.findReturnByTripId(trip.getId());
-
-
-//            boardPointsVisited.add(boardPointVisitedRepository.save(newBoardPointVisitedFound));
 
             boolean allBoardPointsWhereVisitedInReturn = (boardPointsToBeVisited.size() == boardPointsVisited.size());
 
             if (allBoardPointsWhereVisitedInReturn) {
-                Progress progress = Progress.RETURN_FINISHED;
-                if (tripStatusRepository.existsByTripIdAndProgress(trip.getId(), progress)) return;
-                this.setStatusTrip(trip, progress, arrivalDate, routeFound);
+                if (tripStatusRepository.existsByTripIdAndProgress(trip.getId(), Progress.RETURN_FINISHED)) return;
+                this.setStatusTrip(trip, Progress.RETURN_FINISHED, arrivalDate, routeFound);
             }
         }
+
     }
 
     @Transactional
@@ -301,49 +301,61 @@ public class TripService {
 
         boolean isGoing = this.inferGoingOrReturn(arrivalDate.toLocalTime(), routeFound.getGoing(), routeFound.getGoingFinish());
         boolean isReturn = this.inferGoingOrReturn(arrivalDate.toLocalTime(), routeFound.getReturn_(), routeFound.getGoingFinish());
-        Progress progress = null;
 
-        Set<InstitutionEntity> institutionsToBeVisited = this.fetchInstitutionsToBeVisited(routeFound, trip);
-        List<InstitutionVisitedEntity> institutionsVisited = new ArrayList<>();
+        newInstitutionVisitedFound.setGoing(isGoing);
+        newInstitutionVisitedFound.setReturn_(isReturn);
 
+        List<InstitutionVisitedEntity> institutionsVisited;
         if (isGoing) {
-            progress = Progress.STARTED_FINISHED;
-            newInstitutionVisitedFound.setGoing(true);
+            this.setStatusTrip(trip, Progress.INSTITUTION_ARRIVAL, institution.getName(), arrivalDate, routeFound);
+            if (tripStatusRepository.existsByTripIdAndProgress(trip.getId(), Progress.STARTED_FINISHED)) return;
+
             institutionsVisited  = institutionVisitedRepository.findGoingByTripId(trip.getId());
+            Set<InstitutionEntity> institutionsToBeVisited = this.fetchInstitutionsToBeVisited(routeFound, trip);
+
+            boolean allInstitutionsWhereVisited = (institutionsToBeVisited.size() == institutionsVisited.size());
+            if (allInstitutionsWhereVisited) this.setStatusTrip(trip, Progress.STARTED_FINISHED, arrivalDate, routeFound);
         }
 
         if (isReturn) {
-            progress = Progress.RETURN_STARTED;
-            newInstitutionVisitedFound.setReturn_(true);
+            this.setStatusTrip(trip, Progress.INSTITUTION_ARRIVAL, institution.getName(), arrivalDate, routeFound);
+            if (tripStatusRepository.existsByTripIdAndProgress(trip.getId(), Progress.RETURN_STARTED)) return;
+
             institutionsVisited  = institutionVisitedRepository.findReturnByTripId(trip.getId());
+            Set<InstitutionEntity> institutionsToBeVisited = this.fetchInstitutionsToBeVisited(routeFound, trip);
+
+            boolean allInstitutionsWhereVisited = (institutionsToBeVisited.size() == institutionsVisited.size());
+            if (allInstitutionsWhereVisited) this.setStatusTrip(trip, Progress.RETURN_STARTED, arrivalDate, routeFound);
         }
 
-        if (progress == null) {
-            log.warn("Evento de chegada fora de qualquer intervalo de tempo configurado para a trip {}", trip.getId());
-            return;
-        }
-
-        if (tripStatusRepository.existsByTripIdAndProgress(trip.getId(), progress)) return;
-
-//        institutionsVisited.add(institutionVisitedRepository.save(newInstitutionVisitedFound));
-
-        boolean allInstitutionsWhereVisited = (institutionsToBeVisited.size() == institutionsVisited.size());
-
-        if (allInstitutionsWhereVisited) this.setStatusTrip(trip, progress, arrivalDate, routeFound);
     }
 
     private void setStatusTrip(TripEntity trip, Progress progress, LocalDateTime arrivalDate, RouteEntity route) {
-        if (progress.equals(Progress.RETURN_STARTED) && !tripStatusRepository.existsByTripIdAndProgress(trip.getId(), Progress.STARTED_FINISHED)) throw new TripStartedStillNotFinishYetException();
+        this.saveTripStatus(trip, progress, null, arrivalDate, route);
+    }
+
+    private void setStatusTrip(TripEntity trip, Progress progress, String placeName, LocalDateTime arrivalDate, RouteEntity route) {
+        this.saveTripStatus(trip, progress, placeName, arrivalDate, route);
+    }
+
+    private void saveTripStatus(TripEntity trip, Progress progress, String placeName, LocalDateTime arrivalDate, RouteEntity route) {
+        this.validateProgressTripToSave(trip, progress);
         trip.getTripStatus().add(
                 TripStatusEntity.builder()
                         .trip(trip)
                         .progress(progress)
                         .delay(route.calculateDelay(arrivalDate.toLocalTime(), progress))
+                        .description(placeName != null ? progress.getTitle() + placeName : progress.getTitle())
                         .build()
         );
 
         tripRepository.save(trip);
     }
+
+    private void validateProgressTripToSave(TripEntity trip, Progress progress) {
+        if (progress.equals(Progress.RETURN_STARTED) && !tripStatusRepository.existsByTripIdAndProgress(trip.getId(), Progress.STARTED_FINISHED)) throw new TripStartedStillNotFinishYetException();
+    }
+
 
     private Set<InstitutionEntity> fetchInstitutionsToBeVisited(RouteEntity routeFound, TripEntity trip) {
         Set<InstitutionEntity> institutions = new HashSet<>(routeFound.getInstitutions());
