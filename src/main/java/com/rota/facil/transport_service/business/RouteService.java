@@ -60,6 +60,8 @@ public class RouteService {
         preSaved.setRecurring(recurringEntity);
         RouteEntity saved = routeRepository.save(preSaved);
 
+        saved = this.addBoardPoints(saved, request.boardPoints(), currentUser);
+
         if (request.daysOfWeek().contains(DaysOfWeek.getFromValueDay(LocalDate.now().getDayOfWeek().getValue()))) {
 
             List<TripEntity> tripEntities = new ArrayList<>();
@@ -106,9 +108,7 @@ public class RouteService {
         return interpretationResponse;
     }
 
-    public RouteResponseDTO addBoardPoints(UUID routeId, List<CreateBoardPointRouteRequestDTO> request, CurrentUser currentUser) {
-        RouteEntity routeFound = this.fetchEntity(routeId, currentUser.prefectureId());
-
+    public RouteEntity addBoardPoints(RouteEntity route, List<CreateBoardPointRouteRequestDTO> request, CurrentUser currentUser) {
         List<UUID> boardPointsIds = request.stream().map(CreateBoardPointRouteRequestDTO::boardPointId).toList();
 
         List<BoardPointEntity> boardPointsFound = boardPointRepository.findAllById(boardPointsIds);
@@ -134,7 +134,7 @@ public class RouteService {
 
             boardPointRoutes.add(
                     BoardPointRouteEntity.builder()
-                            .route(routeFound)
+                            .route(route)
                             .boardPoint(boardPointFoundMap)
                             .boardTimeGoing(boardPointFoundRequest.boardTimeGoing())
                             .boardTimeFinish(boardPointFoundRequest.boardTimeFinish())
@@ -142,11 +142,11 @@ public class RouteService {
             );
         }
 
-        if (routeFound.getBoardPoints() == null) routeFound.setBoardPoints(new ArrayList<>());
+        if (route.getBoardPoints() == null) route.setBoardPoints(new ArrayList<>());
 
-        routeFound.getBoardPoints().addAll(boardPointRoutes);
+        route.getBoardPoints().addAll(boardPointRoutes);
 
-        return routeMapper.map(routeRepository.save(routeFound));
+        return routeRepository.save(route);
     }
 
     public RouteHeatMapResponseDTO generateRouteBoardPointHeatMap(UUID routeId, CurrentUser currentUser) {
