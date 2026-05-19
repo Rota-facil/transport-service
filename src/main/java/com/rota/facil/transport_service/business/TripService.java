@@ -304,10 +304,11 @@ public class TripService {
     }
 
     public TripUserResponseDTO checkinTrip(UUID tripId, CurrentUser currentUser, Double latitude, Double longitude) {
-        TripUserEntity tripUserFound = tripUserRepository.findNotFinishedByTripIdAndUserIdAndCoordinates(tripId, currentUser.userId(), longitude, latitude)
-                .orElseThrow(TripUserNotFoundException::new);
-        tripUserFound.setPresent(true);
-        return tripUserMapper.map(tripUserRepository.save(tripUserFound));
+//        TripUserEntity tripUserFound = tripUserRepository.findNotFinishedByTripIdAndUserIdAndCoordinates(tripId, currentUser.userId(), longitude, latitude)
+//                .orElseThrow(TripUserNotFoundException::new);
+//        tripUserFound.setPresent(true);
+//        return tripUserMapper.map(tripUserRepository.save(tripUserFound));
+        return null;
     }
 
     public void exitTrip(UUID tripId, CurrentUser currentUser) {

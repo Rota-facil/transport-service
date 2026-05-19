@@ -32,6 +32,9 @@ public record CreateRouteRequestDTO(
     Set<UUID> institutionsIds,
 
     @NotNull(message = "recorrencia é obrigatória")
-    List<UUID> busIds
+    List<UUID> busIds,
+
+    @NotNull(message = "pontos de embarque são obrigatórios")
+    List<CreateBoardPointRouteRequestDTO> boardPoints
 ) {
 }

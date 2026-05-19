@@ -159,7 +159,7 @@ public interface TripUserRepository extends JpaRepository<TripUserEntity, UUID> 
 //            )
 //        AND ST_DWithin(b.geom, ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326)::geography, 10)
 //    """, nativeQuery = true)
-    Optional<TripUserEntity> findNotFinishedByTripIdAndUserIdAndCoordinates(@Param("tripId") UUID tripId, @Param("userId") UUID userId, Double longitude, Double latitude);
+//    Optional<TripUserEntity> findNotFinishedByTripIdAndUserIdAndCoordinates(@Param("tripId") UUID tripId, @Param("userId") UUID userId, Double longitude, Double latitude);
 
         @Query(value = """
         SELECT tu FROM TripUserEntity tu
