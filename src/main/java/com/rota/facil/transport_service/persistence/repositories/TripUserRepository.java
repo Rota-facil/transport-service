@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -74,6 +75,7 @@ public interface TripUserRepository extends JpaRepository<TripUserEntity, UUID> 
         INNER JOIN tu.trip t
         WHERE t.id = :tripId
         AND tu.going IS TRUE
+        AND tu.present IS TRUE
     """)
     List<InstitutionEntity> findAllInstitutionsGoingByTripId(@Param("tripId") UUID tripId);
 
@@ -83,6 +85,7 @@ public interface TripUserRepository extends JpaRepository<TripUserEntity, UUID> 
         INNER JOIN tu.trip t
         WHERE t.id = :tripId
         AND tu.return_ IS TRUE
+        AND tu.present IS TRUE
     """)
     List<InstitutionEntity> findAllInstitutionsReturnByTripId(@Param("tripId") UUID tripId);
 
@@ -92,6 +95,7 @@ public interface TripUserRepository extends JpaRepository<TripUserEntity, UUID> 
         INNER JOIN tu.trip t
         WHERE t.id = :tripId
         AND tu.going IS TRUE
+        AND tu.present IS TRUE
     """)
     List<BoardPointEntity> findAllBoardPointsGoingByTripId(@Param("tripId") UUID tripId);
 
@@ -101,6 +105,7 @@ public interface TripUserRepository extends JpaRepository<TripUserEntity, UUID> 
         INNER JOIN tu.trip t
         WHERE t.id = :tripId
         AND tu.return_ IS TRUE
+        AND tu.present IS TRUE
     """)
     List<BoardPointEntity> findAllBoardPointsReturnByTripId(@Param("tripId") UUID tripId);
 
@@ -125,4 +130,48 @@ public interface TripUserRepository extends JpaRepository<TripUserEntity, UUID> 
         AND d.id = :driverId
     """)
     List<TripUserEntity> findAllByDriverIdAndTripId(@Param("driverId") UUID driverId, @Param("tripId") UUID tripId);
+
+    @Query("""
+        SELECT tu FROM TripUserEntity tu
+        INNER JOIN tu.trip t
+        INNER JOIN t.tripStatus ts
+        INNER JOIN tu.user u
+        WHERE t.id = :tripId
+        AND u.id = :userId
+        AND ts.progress NOT IN (
+                com.rota.facil.transport_service.domain.enums.Progress.RETURN_FINISHED,
+                com.rota.facil.transport_service.domain.enums.Progress.CANCELLED,
+                com.rota.facil.transport_service.domain.enums.Progress.STARTED
+            )
+    """)
+    Optional<TripUserEntity> findNotStartedAndNotFinishedByTripIdAndUserId(@Param("tripId") UUID tripId, @Param("userId") UUID userId);
+
+//    @Query(value = """
+//        SELECT tu FROM TripUserEntity tu
+//        INNER JOIN tu.trip t
+//        INNER JOIN t.tripStatus ts
+//        INNER JOIN tu.user u
+//        WHERE t.id = :tripId
+//        AND u.id = :userId
+//        AND ts.progress NOT IN (
+//                com.rota.facil.transport_service.domain.enums.Progress.RETURN_FINISHED,
+//                com.rota.facil.transport_service.domain.enums.Progress.CANCELLED
+//            )
+//        AND ST_DWithin(b.geom, ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326)::geography, 10)
+//    """, nativeQuery = true)
+    Optional<TripUserEntity> findNotFinishedByTripIdAndUserIdAndCoordinates(@Param("tripId") UUID tripId, @Param("userId") UUID userId, Double longitude, Double latitude);
+
+        @Query(value = """
+        SELECT tu FROM TripUserEntity tu
+        INNER JOIN tu.trip t
+        INNER JOIN t.tripStatus ts
+        INNER JOIN tu.user u
+        WHERE t.id = :tripId
+        AND u.id = :userId
+        AND ts.progress NOT IN (
+                com.rota.facil.transport_service.domain.enums.Progress.RETURN_FINISHED,
+                com.rota.facil.transport_service.domain.enums.Progress.CANCELLED
+            )
+    """)
+    Optional<TripUserEntity> findNotFinishedByTripIdAndUserId(@Param("tripId") UUID tripId, @Param("userId") UUID userId);
 }
