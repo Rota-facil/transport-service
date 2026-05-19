@@ -295,6 +295,27 @@ public class TripService {
                 .toList();
     }
 
+
+    public TripUserResponseDTO checkinTrip(UUID tripId, CurrentUser currentUser) {
+        TripUserEntity tripUserFound = tripUserRepository.findNotFinishedByTripIdAndUserId(tripId, currentUser.userId())
+                .orElseThrow(TripUserNotFoundException::new);
+        tripUserFound.setPresent(true);
+        return tripUserMapper.map(tripUserRepository.save(tripUserFound));
+    }
+
+    public TripUserResponseDTO checkinTrip(UUID tripId, CurrentUser currentUser, Double latitude, Double longitude) {
+        TripUserEntity tripUserFound = tripUserRepository.findNotFinishedByTripIdAndUserIdAndCoordinates(tripId, currentUser.userId(), longitude, latitude)
+                .orElseThrow(TripUserNotFoundException::new);
+        tripUserFound.setPresent(true);
+        return tripUserMapper.map(tripUserRepository.save(tripUserFound));
+    }
+
+    public void exitTrip(UUID tripId, CurrentUser currentUser) {
+        TripUserEntity tripUserFound = tripUserRepository.findNotStartedAndNotFinishedByTripIdAndUserId(tripId, currentUser.userId())
+                .orElseThrow(TripUserNotFoundException::new);
+        tripUserRepository.delete(tripUserFound);
+    }
+
     private Delay getDelay(TripEntity tripFound) {
         RouteEntity route = tripFound.getRoute();
         LocalTime timeToStarted = route.getGoing();

@@ -41,6 +41,23 @@ public class TripController {
         return ResponseEntity.ok(tripService.join(tripId, user, request));
     }
 
+    @PostMapping("/{tripId}/exit")
+    public ResponseEntity<Void> exitTrip(
+            @PathVariable UUID tripId,
+            @AuthenticationPrincipal CurrentUser currentUser
+    ) {
+        tripService.exitTrip(tripId, currentUser);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{tripId}/checkin")
+    public ResponseEntity<TripUserResponseDTO> checkinTrip(
+            @PathVariable UUID tripId,
+            @AuthenticationPrincipal CurrentUser currentUser
+    ) {
+        return ResponseEntity.ok(tripService.checkinTrip(tripId, currentUser));
+    }
+
     @PostMapping("/{tripId}/init")
     public ResponseEntity<TripResponseDTO> initTrip(
             @PathVariable UUID tripId,
