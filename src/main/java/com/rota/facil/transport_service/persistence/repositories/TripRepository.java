@@ -34,7 +34,10 @@ public interface TripRepository extends JpaRepository<TripEntity, UUID> {
         INNER JOIN t.route r
         INNER JOIN t.tripStatus ts
         WHERE r.id = :routeId
-        AND ts.progress = com.rota.facil.transport_service.domain.enums.Progress.RETURN_FINISHED
+        AND ts.progress IN (
+                com.rota.facil.transport_service.domain.enums.Progress.RETURN_FINISHED,
+                com.rota.facil.transport_service.domain.enums.Progress.CANCELLED
+            )
     """)
     List<TripEntity> findAllFinishedByRouteId(@Param("routeId") UUID routeId);
 
