@@ -19,6 +19,7 @@ import java.util.UUID;
 
 @Mapper(componentModel = "spring", builder = @Builder(disableBuilder = true))
 public interface RouteMapper {
+    @Mapping(target = "boardPoints", ignore = true)
     RouteEntity map(CreateRouteRequestDTO request);
 
     @Mapping(target = "boardPoints", expression = "java(toBoardPointResponse(entity.getBoardPoints()))")

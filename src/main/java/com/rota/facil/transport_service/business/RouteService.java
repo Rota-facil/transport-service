@@ -60,7 +60,43 @@ public class RouteService {
         preSaved.setRecurring(recurringEntity);
         RouteEntity saved = routeRepository.save(preSaved);
 
-        saved = this.addBoardPoints(saved, request.boardPoints(), currentUser);
+        List<UUID> boardPointsIds = request.boardPoints().stream().map(CreateBoardPointRouteRequestDTO::boardPointId).toList();
+
+        List<BoardPointEntity> boardPointsFound = boardPointRepository.findAllById(boardPointsIds);
+
+        Map<UUID, CreateBoardPointRouteRequestDTO> boardPointsRequestMap = request.boardPoints().stream().collect(Collectors.toMap(
+                CreateBoardPointRouteRequestDTO::boardPointId,
+                boardPoint -> boardPoint
+        ));
+
+        Map<UUID, BoardPointEntity> boardPointsFoundMap = boardPointsFound.stream()
+                .collect(Collectors.toMap(
+                        com.rota.facil.transport_service.persistence.entities.BoardPointEntity::getId,
+                        boardPoint -> boardPoint
+                ));
+
+        if (boardPointsIds.size() != boardPointsFoundMap.size()) throw new BoardPointNotFoundException("Erro ao encontrar pontos de embarque selecionadas. Selecione apenas ponstos de embarque existentes");
+
+        List<BoardPointRouteEntity> boardPointRoutes = new ArrayList<>();
+
+        for (UUID boardPointId : boardPointsIds) {
+            BoardPointEntity boardPointFoundMap = boardPointsFoundMap.get(boardPointId);
+            CreateBoardPointRouteRequestDTO boardPointFoundRequest = boardPointsRequestMap.get(boardPointId);
+            boardPointRoutes.add(
+                    BoardPointRouteEntity.builder()
+                            .route(saved)
+                            .boardPoint(boardPointFoundMap)
+                            .boardTimeGoing(boardPointFoundRequest.boardTimeGoing())
+                            .boardTimeFinish(boardPointFoundRequest.boardTimeFinish())
+                            .build()
+            );
+        }
+
+        if (saved.getBoardPoints() == null) saved.setBoardPoints(new ArrayList<>());
+
+        saved.getBoardPoints().addAll(boardPointRoutes);
+
+        RouteEntity newSaved = routeRepository.save(saved);
 
         if (request.daysOfWeek().contains(DaysOfWeek.getFromValueDay(LocalDate.now().getDayOfWeek().getValue()))) {
 
@@ -68,7 +104,7 @@ public class RouteService {
 
             for (BusEntity bus : busListFound) {
                 TripEntity createdTrip = TripEntity.builder()
-                        .route(saved)
+                        .route(newSaved)
                         .bus(bus)
                         .prefectureId(currentUser.prefectureId())
                         .build();
@@ -81,7 +117,7 @@ public class RouteService {
             tripRepository.saveAll(tripEntities);
         }
 
-        return routeMapper.map(saved);
+        return routeMapper.map(newSaved);
     }
 
     public RouteResponseDTO fetch(UUID routeId, CurrentUser currentUser) {
@@ -108,7 +144,10 @@ public class RouteService {
         return interpretationResponse;
     }
 
-    public RouteEntity addBoardPoints(RouteEntity route, List<CreateBoardPointRouteRequestDTO> request, CurrentUser currentUser) {
+    @Transactional
+    public RouteEntity addBoardPoints(UUID routeId, List<CreateBoardPointRouteRequestDTO> request, CurrentUser currentUser) {
+        RouteEntity route = routeRepository.findByIdAndPrefectureId(routeId, currentUser.prefectureId())
+                .orElseThrow(RouteNotFoundException::new);
         List<UUID> boardPointsIds = request.stream().map(CreateBoardPointRouteRequestDTO::boardPointId).toList();
 
         List<BoardPointEntity> boardPointsFound = boardPointRepository.findAllById(boardPointsIds);

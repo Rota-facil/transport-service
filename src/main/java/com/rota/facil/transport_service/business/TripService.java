@@ -233,15 +233,14 @@ public class TripService {
         boolean isGoing = this.inferGoingOrReturn(arrivalDate.toLocalTime(), routeFound.getGoing(), routeFound.getGoingFinish());
         boolean isReturn = this.inferGoingOrReturn(arrivalDate.toLocalTime(), routeFound.getReturn_(), routeFound.getReturnFinish());
 
-        newBoardPointVisitedFound.setGoing(isGoing);
-        newBoardPointVisitedFound.setReturn_(isReturn);
-
         if (isGoing) {
+            newBoardPointVisitedFound.setGoing(true);
             this.setStatusTrip(trip, Progress.BOARD_POINT_ARRIVAL, boardPoint.getName(), arrivalDate, routeFound);
             return;
         }
 
         if (isReturn) {
+            newBoardPointVisitedFound.setReturn_(true);
             this.setStatusTrip(trip, Progress.BOARD_POINT_ARRIVAL, boardPoint.getName(), arrivalDate, routeFound);
 
             if (tripStatusRepository.existsByTripIdAndProgress(trip.getId(), Progress.RETURN_FINISHED)) return;
@@ -265,10 +264,9 @@ public class TripService {
         boolean isGoing = this.inferGoingOrReturn(arrivalDate.toLocalTime(), routeFound.getGoing(), routeFound.getGoingFinish());
         boolean isReturn = this.inferGoingOrReturn(arrivalDate.toLocalTime(), routeFound.getReturn_(), routeFound.getGoingFinish());
 
-        newInstitutionVisitedFound.setGoing(isGoing);
-        newInstitutionVisitedFound.setReturn_(isReturn);
 
         if (isGoing) {
+            newInstitutionVisitedFound.setGoing(true);
             this.setStatusTrip(trip, Progress.INSTITUTION_ARRIVAL, institution.getName(), arrivalDate, routeFound);
             if (tripStatusRepository.existsByTripIdAndProgress(trip.getId(), Progress.STARTED_FINISHED)) return;
 
@@ -279,6 +277,7 @@ public class TripService {
         }
 
         if (isReturn) {
+            newInstitutionVisitedFound.setReturn_(true);
             this.setStatusTrip(trip, Progress.INSTITUTION_ARRIVAL, institution.getName(), arrivalDate, routeFound);
             if (tripStatusRepository.existsByTripIdAndProgress(trip.getId(), Progress.RETURN_STARTED)) return;
 
