@@ -56,14 +56,15 @@ public class RouteEntity {
     )
     private Set<InstitutionEntity> institutions;
 
+    @OneToMany(mappedBy = "route", cascade = CascadeType.ALL)
+    private List<BoardPointRouteEntity> boardPoints;
+
+
     @ElementCollection
     @CollectionTable(name = "route_recurring_day_of_week_tb", joinColumns = @JoinColumn(name = "route_id"))
     @Enumerated(EnumType.STRING)
     @Column(name = "days_of_week")
     private Set<DaysOfWeek> daysOfWeek;
-
-    @OneToMany(mappedBy = "route", cascade = CascadeType.ALL)
-    private List<BoardPointRouteEntity> boardPoints;
 
     @OneToMany(mappedBy = "route", cascade = CascadeType.ALL)
     private List<RouteRecurringEntity> recurring;

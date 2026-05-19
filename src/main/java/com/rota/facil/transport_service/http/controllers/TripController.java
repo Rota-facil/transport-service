@@ -3,6 +3,7 @@ package com.rota.facil.transport_service.http.controllers;
 import com.rota.facil.transport_service.business.TripService;
 import com.rota.facil.transport_service.http.dto.request.trip.CancelTripRequestDTO;
 import com.rota.facil.transport_service.http.dto.request.trip.JoinUserInTrip;
+import com.rota.facil.transport_service.http.dto.response.tripUser.SimpleTripUserResponseDTO;
 import com.rota.facil.transport_service.http.dto.response.tripUser.TripUserResponseDTO;
 import com.rota.facil.transport_service.http.dto.request.user.CurrentUser;
 import com.rota.facil.transport_service.http.dto.response.trip.TripResponseDTO;
@@ -65,9 +66,14 @@ public class TripController {
         return ResponseEntity.ok(tripService.fetch(tripId, currentUser));
     }
 
+    @GetMapping("/{tripId}/students")
+    public ResponseEntity<List<SimpleTripUserResponseDTO>> listStudentsOfTrip(@PathVariable UUID tripId, @AuthenticationPrincipal CurrentUser currentUser) {
+        return ResponseEntity.ok(tripService.listStudents(tripId, currentUser));
+    }
+
     @GetMapping("/my-trips")
-    public ResponseEntity<List<TripUserResponseDTO>> fetchMyTrips(@AuthenticationPrincipal CurrentUser currentUser) {
-        return ResponseEntity.ok(tripService.myTrips(currentUser));
+    public ResponseEntity<List<TripResponseDTO>> fetchMyTripsToday(@AuthenticationPrincipal CurrentUser currentUser) {
+        return ResponseEntity.ok(tripService.myTripsToday(currentUser));
     }
 
 

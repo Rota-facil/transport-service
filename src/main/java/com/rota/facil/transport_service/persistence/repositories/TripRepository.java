@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -66,4 +67,13 @@ public interface TripRepository extends JpaRepository<TripEntity, UUID> {
         WHERE t.prefectureId = :prefectureId
     """)
     List<TripEntity> findAllByPrefectureId(@Param("prefectureId") UUID prefectureId);
+
+    @Query("""
+        SELECT t FROM TripEntity t
+        INNER JOIN t.bus b
+        INNER JOIN b.driver d
+        WHERE d.id = :driverId
+        AND t.createdAt = CURRENT_DATE
+    """)
+    List<TripEntity> findAllTodayByDriverId(@Param("driverId") UUID driverId);
 }
