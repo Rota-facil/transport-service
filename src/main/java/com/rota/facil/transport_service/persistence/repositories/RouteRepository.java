@@ -56,4 +56,21 @@ public interface RouteRepository extends JpaRepository<RouteEntity, UUID> {
         ORDER BY r.createdAt DESC
     """)
     List<RouteEntity> findAllByPrefectureId(@Param("prefectureId") UUID prefectureId);
+
+    @Query("""
+        SELECT i FROM RouteEntity r
+        INNER JOIN r.institutions i
+        WHERE r.id = :routeId
+        ORDER BY i.geom
+    """)
+    List<InstitutionEntity> findAllInstitutionsById(@Param("routeId") UUID routeId);
+
+    @Query("""
+        SELECT b FROM RouteEntity r
+        INNER JOIN r.boardPoints br
+        INNER JOIN br.boardPoint b
+        WHERE r.id = :routeId
+        ORDER BY b.geom
+    """)
+    List<BoardPointEntity> findAllBoardPointsById(@Param("routeId") UUID routeId);
 }

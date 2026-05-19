@@ -1,8 +1,8 @@
 package com.rota.facil.transport_service.persistence.repositories;
 
-import com.rota.facil.transport_service.http.dto.request.route.PointRequestDTO;
 import com.rota.facil.transport_service.persistence.entities.BoardPointEntity;
 import com.rota.facil.transport_service.persistence.entities.InstitutionEntity;
+import com.rota.facil.transport_service.persistence.entities.TripEntity;
 import com.rota.facil.transport_service.persistence.entities.TripUserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -42,20 +42,23 @@ public interface TripUserRepository extends JpaRepository<TripUserEntity, UUID> 
     List<String> findAllEmailsByTripId(@Param("tripId") UUID tripId);
 
     @Query("""
-        SELECT tu FROM TripUserEntity tu
+        SELECT t FROM TripUserEntity tu
         INNER JOIN tu.trip t
         INNER JOIN t.bus b
         INNER JOIN b.driver d
         WHERE d.id = :driverId
+        AND CAST(t.createdAt AS DATE) = CURRENT_DATE
     """)
-    List<TripUserEntity> findAllByDriverId(@Param("driverId") UUID driverId);
+    List<TripEntity> findAllByDriverId(@Param("driverId") UUID driverId);
 
     @Query("""
-        SELECT tu FROM TripUserEntity tu
+        SELECT t FROM TripUserEntity tu
         INNER JOIN tu.user u
+        INNER JOIN tu.trip t
         WHERE u.id = :passengerId
+        AND t.createdAt = CURRENT_DATE
     """)
-    List<TripUserEntity> findAllByPassengerId(@Param("passengerId") UUID passengerId);
+    List<TripEntity> findAllTodayByPassengerId(@Param("passengerId") UUID passengerId);
 
     @Query("""
         SELECT i FROM TripUserEntity tu
@@ -112,4 +115,14 @@ public interface TripUserRepository extends JpaRepository<TripUserEntity, UUID> 
     ORDER BY geom;
     """, nativeQuery = true)
     List<BoardPointEntity> findAllBoardPointsOfTripsFinishedByRouteId(@Param("routeId") UUID routeId);
+
+    @Query("""
+        SELECT tu FROM TripUserEntity tu
+        INNER JOIN tu.trip t
+        INNER JOIN t.bus b
+        INNER JOIN b.driver d
+        WHERE t.id = :tripId
+        AND d.id = :driverId
+    """)
+    List<TripUserEntity> findAllByDriverIdAndTripId(@Param("driverId") UUID driverId, @Param("tripId") UUID tripId);
 }

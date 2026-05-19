@@ -7,6 +7,7 @@ import com.rota.facil.transport_service.domain.exceptions.*;
 import com.rota.facil.transport_service.http.dto.request.trip.CancelTripRequestDTO;
 import com.rota.facil.transport_service.http.dto.request.trip.CreateTripRequestDTO;
 import com.rota.facil.transport_service.http.dto.request.trip.JoinUserInTrip;
+import com.rota.facil.transport_service.http.dto.response.tripUser.SimpleTripUserResponseDTO;
 import com.rota.facil.transport_service.http.dto.response.tripUser.TripUserResponseDTO;
 import com.rota.facil.transport_service.http.dto.request.user.CurrentUser;
 import com.rota.facil.transport_service.http.dto.response.trip.TripResponseDTO;
@@ -19,14 +20,11 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
 import java.util.*;
 
 @Service
@@ -194,14 +192,14 @@ public class TripService {
     }
 
 
-    public List<TripUserResponseDTO> myTrips(CurrentUser user) {
-        List<TripUserEntity> trips = new ArrayList<>();
+    public List<TripResponseDTO> myTripsToday(CurrentUser user) {
+        List<TripEntity> trips = new ArrayList<>();
 
-        if (Role.DRIVER.equals(Role.valueOf(user.role()))) trips.addAll(tripUserRepository.findAllByDriverId(user.userId()));
-        if (Role.STUDENT.equals(Role.valueOf(user.role()))) trips.addAll(tripUserRepository.findAllByPassengerId(user.userId()));
+        if (Role.DRIVER.equals(Role.valueOf(user.role()))) trips.addAll(tripRepository.findAllTodayByDriverId(user.userId()));
+        if (Role.STUDENT.equals(Role.valueOf(user.role()))) trips.addAll(tripUserRepository.findAllTodayByPassengerId(user.userId()));
 
         return trips.stream()
-                .map(tripUserMapper::map)
+                .map(tripMapper::map)
                 .toList();
     }
 
@@ -287,6 +285,14 @@ public class TripService {
             this.setStatusTrip(trip, Progress.RETURN_STARTED, arrivalDate, routeFound);
         }
 
+    }
+
+
+    public List<SimpleTripUserResponseDTO> listStudents(UUID tripId, CurrentUser currentUser) {
+        return tripUserRepository.findAllByDriverIdAndTripId(currentUser.userId(), tripId)
+                .stream()
+                .map(tripUserMapper::mapToSimple)
+                .toList();
     }
 
     private Delay getDelay(TripEntity tripFound) {
