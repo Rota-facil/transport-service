@@ -29,7 +29,7 @@ public interface RouteRepository extends JpaRepository<RouteEntity, UUID> {
         INNER JOIN board_points_routes_tb br USING(route_id)
         INNER JOIN board_points_tb b USING(board_point_id)
         WHERE t.trip_id = :tripId
-        AND ST_DWithin(b.geom, ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326)::geography, 10)
+        AND ST_DWithin(b.geom, ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326)::geography, 30)
     """, nativeQuery = true)
     Optional<BoardPointEntity> findBoardPointByTripIdAndCoordinates(@Param("tripId") UUID tripId, @Param("longitude") double longitude, @Param("latitude") double latitude);
 
@@ -39,7 +39,7 @@ public interface RouteRepository extends JpaRepository<RouteEntity, UUID> {
         INNER JOIN routes_institutions_tb ri USING(route_id)
         INNER JOIN institutions_tb i USING(institution_id)
         WHERE t.trip_id = :tripId
-        AND ST_DWithin(i.geom, ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326)::geography, 10)
+        AND ST_DWithin(i.geom, ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326)::geography, 30)
     """, nativeQuery = true)
     Optional<InstitutionEntity> findInstitutionByTripIdAndCoordinates(@Param("tripId") UUID tripId, @Param("longitude") double longitude, @Param("latitude") double latitude);
 

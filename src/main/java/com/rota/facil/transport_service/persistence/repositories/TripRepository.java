@@ -79,4 +79,11 @@ public interface TripRepository extends JpaRepository<TripEntity, UUID> {
         AND t.createdAt = CURRENT_DATE
     """)
     List<TripEntity> findAllTodayByDriverId(@Param("driverId") UUID driverId);
+
+    @Query("""
+        SELECT t FROM TripEntity t
+        WHERE t.prefectureId = :prefectureId
+        AND t.createdAt = CURRENT_DATE
+    """)
+    List<TripEntity> findAllByPrefectureIdToday(@Param("prefectureId") UUID prefectureId);
 }

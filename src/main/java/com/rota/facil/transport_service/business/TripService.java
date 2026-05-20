@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
@@ -84,7 +85,7 @@ public class TripService {
 
 
     public List<TripResponseDTO> list(CurrentUser currentUser) {
-        return tripRepository.findAllByPrefectureId(currentUser.prefectureId())
+        return tripRepository.findAllByPrefectureIdToday(currentUser.prefectureId())
                 .stream()
                 .map(tripMapper::map)
                 .toList();
@@ -266,7 +267,7 @@ public class TripService {
                 );
 
         boolean isGoing = this.inferGoingOrReturn(arrivalDate.toLocalTime(), routeFound.getGoing(), routeFound.getGoingFinish());
-        boolean isReturn = this.inferGoingOrReturn(arrivalDate.toLocalTime(), routeFound.getReturn_(), routeFound.getGoingFinish());
+        boolean isReturn = this.inferGoingOrReturn(arrivalDate.toLocalTime(), routeFound.getReturn_(), routeFound.getReturnFinish());
 
 
         if (isGoing) {
@@ -325,7 +326,7 @@ public class TripService {
     private Delay getDelay(TripEntity tripFound) {
         RouteEntity route = tripFound.getRoute();
         LocalTime timeToStarted = route.getGoing();
-        LocalTime timeToReturn = route.getReturn_();
+        LocalTime timeToReturn = route.getGoingFinish();
 
         LocalTime realTimeStated = LocalTime.now();
 
@@ -461,9 +462,11 @@ public class TripService {
     }
 
     private boolean inferGoingOrReturn(LocalTime arrivalDate, LocalTime startInterval, LocalTime finishInterval) {
-        LocalTime startWithTol = startInterval.minusMinutes(6L);
-        LocalTime endWithTol = finishInterval.plusMinutes(6L);
-        return !arrivalDate.isBefore(startWithTol) && !arrivalDate.isAfter(endWithTol);
+        LocalDate now = LocalDate.now();
+        LocalDateTime startWithTol = LocalDateTime.of(now, startInterval);
+        LocalDateTime endWithTol = LocalDateTime.of(now, finishInterval);
+        LocalDateTime arrivalDateTime = LocalDateTime.of(now, arrivalDate);
+        return !arrivalDateTime.isBefore(startWithTol.minusMinutes(6L)) && !arrivalDateTime.isAfter(endWithTol.plusMinutes(6L));
     }
 
     private TripEntity fetchEntity(UUID tripId) {
