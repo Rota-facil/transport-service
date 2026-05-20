@@ -153,6 +153,7 @@ public class TripService {
                         .trip(tripFound)
                         .delay(delay)
                         .progress(Progress.STARTED)
+                        .description(Progress.STARTED.getTitle())
                         .build()
         );
 
@@ -235,12 +236,15 @@ public class TripService {
 
         if (isGoing) {
             newBoardPointVisitedFound.setGoing(true);
+            newBoardPointVisitedFound = boardPointVisitedRepository.save(newBoardPointVisitedFound);
             this.setStatusTrip(trip, Progress.BOARD_POINT_ARRIVAL, boardPoint.getName(), arrivalDate, routeFound);
             return;
         }
 
         if (isReturn) {
             newBoardPointVisitedFound.setReturn_(true);
+            newBoardPointVisitedFound = boardPointVisitedRepository.save(newBoardPointVisitedFound);
+
             this.setStatusTrip(trip, Progress.BOARD_POINT_ARRIVAL, boardPoint.getName(), arrivalDate, routeFound);
 
             if (tripStatusRepository.existsByTripIdAndProgress(trip.getId(), Progress.RETURN_FINISHED)) return;
@@ -267,6 +271,7 @@ public class TripService {
 
         if (isGoing) {
             newInstitutionVisitedFound.setGoing(true);
+            newInstitutionVisitedFound = institutionVisitedRepository.save(newInstitutionVisitedFound);
             this.setStatusTrip(trip, Progress.INSTITUTION_ARRIVAL, institution.getName(), arrivalDate, routeFound);
             if (tripStatusRepository.existsByTripIdAndProgress(trip.getId(), Progress.STARTED_FINISHED)) return;
 
@@ -278,6 +283,7 @@ public class TripService {
 
         if (isReturn) {
             newInstitutionVisitedFound.setReturn_(true);
+            newInstitutionVisitedFound = institutionVisitedRepository.save(newInstitutionVisitedFound);
             this.setStatusTrip(trip, Progress.INSTITUTION_ARRIVAL, institution.getName(), arrivalDate, routeFound);
             if (tripStatusRepository.existsByTripIdAndProgress(trip.getId(), Progress.RETURN_STARTED)) return;
 

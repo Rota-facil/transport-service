@@ -116,7 +116,7 @@ public interface TripUserRepository extends JpaRepository<TripUserEntity, UUID> 
     INNER JOIN trip_status_tb ts USING(trip_id)
     INNER JOIN routes_tb r USING(route_id)
     WHERE r.route_id = :routeId
-    AND ts.progress = 'RETURN_FINISHED'
+    AND ts.progress IN ('RETURN_FINISHED', 'CANCELLED')
     ORDER BY geom;
     """, nativeQuery = true)
     List<BoardPointEntity> findAllBoardPointsOfTripsFinishedByRouteId(@Param("routeId") UUID routeId);
