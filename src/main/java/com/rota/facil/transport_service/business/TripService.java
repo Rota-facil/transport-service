@@ -335,7 +335,7 @@ public class TripService {
         if (realTimeStated.isAfter(timeToStarted) && realTimeStated.isBefore(timeToReturn)) delay = Delay.LATE;
         else if (realTimeStated.isBefore(timeToStarted) && realTimeStated.isAfter(timeToStarted.minusMinutes(6L))) delay = Delay.EARLY;
         else if (realTimeStated.equals(timeToStarted)) delay = Delay.PUNCTUAL;
-        else throw new InvalidTimeToInitTrip("Você só pode iniciar uma viagem com 6 minutos adiantados ou não é possível iniciar uma viagem quando o horário de volta já deveria ser iniciado");
+        else throw new InvalidTimeToInitTripException("Você só pode iniciar uma viagem com 6 minutos adiantados ou não é possível iniciar uma viagem quando o horário de volta já deveria ser iniciado\nTempo do evento ocorrido: " + realTimeStated + " inicio: " + timeToStarted + " fim: " + timeToReturn);
         return delay;
     }
 
