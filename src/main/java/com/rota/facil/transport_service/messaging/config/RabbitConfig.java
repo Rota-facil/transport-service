@@ -34,6 +34,9 @@ public class RabbitConfig {
     @Value("${rabbitmq.transport.user.deleted.queue}")
     private String userDeletedQueue;
 
+    @Value("${rabbitmq.transport.user.deactivate.queue}")
+    private String userDeactivateQueue;
+
     @Value("${rabbitmq.user.created.routing.key}")
     private String userCreatedRoutingKey;
 
@@ -43,6 +46,8 @@ public class RabbitConfig {
     @Value("${rabbitmq.user.deleted.routing.key}")
     private String userDeletedRoutingKey;
 
+    @Value("${rabbitmq.user.deactivate.routing.key}")
+    private String userDeactivateRoutingKey;
 
 
 
@@ -140,6 +145,9 @@ public class RabbitConfig {
         return new Queue(userDeletedQueue);
     }
 
+    @Bean Queue userDeactivateQueue() {
+        return new Queue(userDeactivateQueue);
+    }
 
     @Bean
     public Queue institutionCreatedQueue() {
@@ -187,6 +195,10 @@ public class RabbitConfig {
         return BindingBuilder.bind(this.userDeletedQueue()).to(this.authExchange()).with(userDeletedRoutingKey);
     }
 
+    @Bean
+    public Binding userDeactivateBinding() {
+        return BindingBuilder.bind(this.userDeactivateQueue()).to(this.authExchange()).with(userDeactivateRoutingKey);
+    }
 
     @Bean
     public Binding institutionCreatedBinding() {
