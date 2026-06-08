@@ -34,11 +34,21 @@ public class RabbitAuthEventConsumer {
         }
     }
 
-    @RabbitListener(queues = "${rabbitmq.transport.user.deleted.queue}")
-    public void handlerDeleteUser(UserEventReceive updateUser) {
+    @RabbitListener(queues = {"${rabbitmq.transport.user.deleted.queue}"})
+    public void handlerDeleteUser(UserEventReceive deleteUser) {
         try {
-            UserEntity userEntity = userEventMapper.map(updateUser);
+            UserEntity userEntity = userEventMapper.map(deleteUser);
             userService.delete(userEntity);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @RabbitListener(queues = {"${rabbitmq.transport.user.deactivate.queue}"})
+    public void handlerDeactivateUser(UserEventReceive deactivateUser) {
+        try {
+            UserEntity userEntity = userEventMapper.map(deactivateUser);
+//            Chama service para fazer lógica de desativacao
         } catch (Exception e) {
             e.printStackTrace();
         }
