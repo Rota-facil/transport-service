@@ -7,7 +7,7 @@ public record TripUserResponseDTO(
         TripUserUserResponseDTO user,
         TripUserInstitutionResponseDTO institution,
         TripUserBoardPointResponseDTO boardPoint,
-        Boolean present,
+        String presence,
         Boolean going,
         Boolean return_
 ) {

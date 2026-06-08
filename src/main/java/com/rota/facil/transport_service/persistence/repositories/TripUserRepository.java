@@ -1,5 +1,6 @@
 package com.rota.facil.transport_service.persistence.repositories;
 
+import com.rota.facil.transport_service.domain.enums.Progress;
 import com.rota.facil.transport_service.persistence.entities.BoardPointEntity;
 import com.rota.facil.transport_service.persistence.entities.InstitutionEntity;
 import com.rota.facil.transport_service.persistence.entities.TripEntity;
@@ -182,4 +183,19 @@ public interface TripUserRepository extends JpaRepository<TripUserEntity, UUID> 
         WHERE tu.user.id = :userId
     """)
     void deleteByUserId(@Param("userId") UUID userId);
+
+    @Modifying
+    @Query("""
+        UPDATE TripUserEntity tu SET
+        tu.presence = com.rota.facil.transport_service.domain.enums.Presence.ABSENT
+        WHERE tu.presence = com.rota.facil.transport_service.domain.enums.Presence.PENDING
+        AND tu.trip.id = :tripId
+        AND EXISTS (
+                                     SELECT ts.id
+                                     FROM TripStatusEntity ts
+                                     WHERE ts.trip.id = :tripId
+                                     AND ts.progress = :tripProgress
+                                 )
+    """)
+    void setAbsentUsersOnTheTrip(@Param("tripId") UUID tripId, @Param("tripProgress") Progress tripProgress);
 }

@@ -7,7 +7,7 @@ public record SimpleTripUserResponseDTO(
         TripUserUserResponseDTO user,
         String institutionName,
         String boardPointName,
-        Boolean present,
+        String presence,
         Boolean going,
         Boolean return_
 ) {

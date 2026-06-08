@@ -1,6 +1,7 @@
 package com.rota.facil.transport_service.business;
 
 import com.rota.facil.transport_service.domain.enums.Delay;
+import com.rota.facil.transport_service.domain.enums.Presence;
 import com.rota.facil.transport_service.domain.enums.Progress;
 import com.rota.facil.transport_service.domain.enums.Role;
 import com.rota.facil.transport_service.domain.exceptions.*;
@@ -249,7 +250,11 @@ public class TripService {
             this.setStatusTrip(trip, Progress.BOARD_POINT_ARRIVAL, boardPoint.getName(), arrivalDate, routeFound);
 
             if (tripStatusRepository.existsByTripIdAndProgress(trip.getId(), Progress.RETURN_FINISHED)) return;
-            if (this.allInstitutionsAndBoardPointsWhereVisitedInReturn(routeFound, trip)) this.setStatusTrip(trip, Progress.RETURN_FINISHED, arrivalDate, routeFound);
+
+            if (this.allInstitutionsAndBoardPointsWhereVisitedInReturn(routeFound, trip)) {
+                this.setStatusTrip(trip, Progress.RETURN_FINISHED, arrivalDate, routeFound);
+                this.setAbsences(trip, Progress.STARTED_FINISHED);
+            }
         }
 
     }
@@ -279,6 +284,7 @@ public class TripService {
             if (this.allInstitutionsAndBoardPointsWhereVisitedInGoing(routeFound, trip)) {
                 this.setStatusTrip(trip, Progress.STARTED_FINISHED, arrivalDate, routeFound);
                 this.registerIgnoredInstitutionsForReturnTrip(trip);
+                this.setAbsences(trip, Progress.STARTED_FINISHED);
             }
         }
 
@@ -305,7 +311,7 @@ public class TripService {
     public TripUserResponseDTO checkinTrip(UUID tripId, CurrentUser currentUser) {
         TripUserEntity tripUserFound = tripUserRepository.findNotFinishedByTripIdAndUserId(tripId, currentUser.userId())
                 .orElseThrow(TripUserNotFoundException::new);
-        tripUserFound.setPresent(true);
+        tripUserFound.setPresence(Presence.CHECKIN);
         return tripUserMapper.map(tripUserRepository.save(tripUserFound));
     }
 
@@ -321,6 +327,10 @@ public class TripService {
         TripUserEntity tripUserFound = tripUserRepository.findNotStartedAndNotFinishedByTripIdAndUserId(tripId, currentUser.userId())
                 .orElseThrow(TripUserNotFoundException::new);
         tripUserRepository.delete(tripUserFound);
+    }
+
+    private void setAbsences(TripEntity trip, Progress tripProgress) {
+        tripUserRepository.setAbsentUsersOnTheTrip(trip.getId(), tripProgress);
     }
 
     private Delay getDelay(TripEntity tripFound) {
