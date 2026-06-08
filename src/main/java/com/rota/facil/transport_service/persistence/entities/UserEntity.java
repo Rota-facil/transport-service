@@ -28,6 +28,9 @@ public class UserEntity {
     @Builder.Default
     private Double score = 5.0;
 
+    @Builder.Default
+    private Boolean active = true;
+
     @Enumerated(EnumType.STRING)
     private Role role;
 
