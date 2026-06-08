@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS trip_users_tb (
     trip_id UUID NOT NULL,
     institution_id UUID NOT NULL,
     board_point_id UUID NOT NULL,
-    present BOOLEAN NOT NULL DEFAULT FALSE,
+    presence TEXT NOT NULL DEFAULT 'PENDING',
     going BOOLEAN NOT NULL DEFAULT FALSE,
     return BOOLEAN NOT NULL DEFAULT FALSE,
 

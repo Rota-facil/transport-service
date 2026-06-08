@@ -1,5 +1,6 @@
 package com.rota.facil.transport_service.persistence.entities;
 
+import com.rota.facil.transport_service.domain.enums.Presence;
 import jakarta.persistence.*;
 import lombok.*;
 import org.apache.catalina.User;
@@ -36,7 +37,8 @@ public class TripUserEntity {
     private BoardPointEntity boardPoint;
 
     @Builder.Default
-    private Boolean present = false;
+    @Enumerated(EnumType.STRING)
+    private Presence presence = Presence.PENDING;
 
     private Boolean going;
 

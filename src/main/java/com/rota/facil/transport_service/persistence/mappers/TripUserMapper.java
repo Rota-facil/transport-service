@@ -9,8 +9,10 @@ import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring", builder = @Builder(disableBuilder = true))
 public interface TripUserMapper {
+    @Mapping(target = "presence", expression = "java(entity.getPresence().getDescription())")
     TripUserResponseDTO map(TripUserEntity entity);
 
+    @Mapping(target = "presence", expression = "java(entity.getPresence().getDescription())")
     @Mapping(target = "institutionName", source = "institution.name")
     @Mapping(target = "boardPointName", source = "boardPoint.name")
     SimpleTripUserResponseDTO mapToSimple(TripUserEntity entity);
