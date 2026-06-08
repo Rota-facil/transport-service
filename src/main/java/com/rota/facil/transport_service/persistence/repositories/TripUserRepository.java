@@ -5,6 +5,7 @@ import com.rota.facil.transport_service.persistence.entities.InstitutionEntity;
 import com.rota.facil.transport_service.persistence.entities.TripEntity;
 import com.rota.facil.transport_service.persistence.entities.TripUserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -174,4 +175,11 @@ public interface TripUserRepository extends JpaRepository<TripUserEntity, UUID> 
             )
     """)
     Optional<TripUserEntity> findNotFinishedByTripIdAndUserId(@Param("tripId") UUID tripId, @Param("userId") UUID userId);
+
+    @Modifying
+    @Query("""
+        DELETE FROM TripUserEntity tu
+        WHERE tu.user.id = :userId
+    """)
+    void deleteByUserId(@Param("userId") UUID userId);
 }
