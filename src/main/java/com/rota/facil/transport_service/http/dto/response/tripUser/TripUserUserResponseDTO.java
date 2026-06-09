@@ -4,6 +4,7 @@ import java.util.UUID;
 
 public record TripUserUserResponseDTO(
         UUID id,
+        String name,
         String email
 ) {
 }
