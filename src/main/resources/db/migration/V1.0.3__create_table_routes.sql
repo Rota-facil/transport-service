@@ -1,5 +1,6 @@
 CREATE TABLE IF NOT EXISTS routes_tb (
     route_id UUID PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
     shift VARCHAR(20) NOT NULL,
     going TIME NOT NULL,
     return TIME NOT NULL,

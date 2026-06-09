@@ -30,15 +30,6 @@ public class RouteController {
         return ResponseEntity.ok(routeService.register(request, currentUser));
     }
 
-//    @PostMapping("/{routeId}/board-points")
-//    public ResponseEntity<RouteResponseDTO> addBoardPointsToRoute(
-//            @PathVariable UUID routeId,
-//            @Valid @RequestBody List<CreateBoardPointRouteRequestDTO> request,
-//            @AuthenticationPrincipal CurrentUser currentUser
-//    ) {
-//        return ResponseEntity.ok(routeService.addBoardPoints(routeId, request, currentUser));
-//    }
-
     @PostMapping("/{routeId}/interpreter")
     public ResponseEntity<RouteInterpretationResponseDTO> interpreterRoute(@PathVariable UUID routeId) {
         return ResponseEntity.ok(routeService.interpreterRoute(routeId));

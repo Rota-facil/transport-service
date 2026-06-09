@@ -26,6 +26,8 @@ public class RouteEntity {
     @Column(name = "route_id")
     private UUID id;
 
+    private String name;
+
     @Enumerated(EnumType.STRING)
     private Shift shift;
 
