@@ -8,6 +8,7 @@ public record SimpleTripUserResponseDTO(
         String institutionName,
         String boardPointName,
         String presence,
+        Double score,
         Boolean going,
         Boolean return_
 ) {
