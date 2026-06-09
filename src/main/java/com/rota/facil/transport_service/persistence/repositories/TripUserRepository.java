@@ -198,4 +198,13 @@ public interface TripUserRepository extends JpaRepository<TripUserEntity, UUID> 
                                  )
     """)
     void setAbsentUsersOnTheTrip(@Param("tripId") UUID tripId, @Param("tripProgress") Progress tripProgress);
+
+    @Query("""
+        SELECT tu FROM TripUserEntity tu
+        INNER JOIN tu.trip t
+        INNER JOIN tu.user u
+        WHERE t.id = :tripId
+        AND u.id = :userId
+    """)
+    Optional<TripUserEntity> findByTripIdAndUserId(@Param("tripId") UUID tripId, @Param("userId") UUID userId);
 }

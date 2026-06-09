@@ -88,6 +88,16 @@ public class GlobalExceptionHandler {
         return this.resolveExceptions(HttpStatus.NOT_FOUND, request, ex);
     }
 
+    @ExceptionHandler
+    public ResponseEntity<Object> userAlreadyEvaluateInThisTripException(UserAlreadyEvaluateInThisTripException ex, HttpServletRequest request) {
+        return this.resolveExceptions(HttpStatus.BAD_REQUEST, request, ex);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<Object> userOfTripNotFoundException(UserOfTripNotFoundException ex, HttpServletRequest request) {
+        return this.resolveExceptions(HttpStatus.NOT_FOUND, request, ex);
+    }
+
     private ResponseEntity<Object> resolveExceptions(HttpStatus status, HttpServletRequest request, Exception ex) {
         Map<String, Object> body = new HashMap<>();
         body.put("timestamp", LocalDateTime.now());
