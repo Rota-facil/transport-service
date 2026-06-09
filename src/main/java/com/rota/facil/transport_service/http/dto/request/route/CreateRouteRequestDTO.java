@@ -13,6 +13,9 @@ public record CreateRouteRequestDTO(
     @NotNull(message = "turno é obrigatório")
     Shift shift,
 
+    @NotNull(message = "nome da rota é obrigatório")
+    String name,
+
     @NotNull(message = "horário de ida é obrigatório")
     LocalTime going,
 

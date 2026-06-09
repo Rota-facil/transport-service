@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS trip_users_tb (
     institution_id UUID NOT NULL,
     board_point_id UUID NOT NULL,
     presence TEXT NOT NULL DEFAULT 'PENDING',
+    score DOUBLE PRECISION NOT NULL DEFAULT 0,
     going BOOLEAN NOT NULL DEFAULT FALSE,
     return BOOLEAN NOT NULL DEFAULT FALSE,
 
