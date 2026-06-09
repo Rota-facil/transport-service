@@ -22,6 +22,8 @@ public class TripEntity {
     @Column(name = "trip_id")
     private UUID id;
 
+    private String name;
+
     @ManyToOne
     @JoinColumn(name = "bus_id")
     private BusEntity bus;

@@ -6,6 +6,7 @@ import java.util.UUID;
 
 public record TripResponseDTO(
         UUID id,
+        String name,
         String reasonOfCancellation,
         LocalDateTime createdAt,
         TripBusResponseDTO bus,

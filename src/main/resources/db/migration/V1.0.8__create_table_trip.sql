@@ -1,5 +1,6 @@
 CREATE TABLE IF NOT EXISTS trips_tb (
     trip_id UUID PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
     bus_id UUID NOT NULL,
     route_id UUID NOT NULL,
     latitude DOUBLE PRECISION NOT NULL DEFAULT 0.0,

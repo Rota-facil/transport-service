@@ -104,6 +104,7 @@ public class RouteService {
 
             for (BusEntity bus : busListFound) {
                 TripEntity createdTrip = TripEntity.builder()
+                        .name(newSaved.getName())
                         .route(newSaved)
                         .bus(bus)
                         .prefectureId(currentUser.prefectureId())

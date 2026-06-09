@@ -28,6 +28,7 @@ public class TripSchedule {
 
         for (RouteRecurringEntity routeRecurring : routeRecurringEntities) {
             TripEntity preSavedTrip = TripEntity.builder()
+                    .name(routeRecurring.getRoute().getName())
                     .route(routeRecurring.getRoute())
                     .bus(routeRecurring.getBus())
                     .prefectureId(routeRecurring.getRoute().getPrefectureId())
