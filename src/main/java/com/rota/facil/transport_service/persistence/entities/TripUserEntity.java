@@ -37,6 +37,9 @@ public class TripUserEntity {
     private BoardPointEntity boardPoint;
 
     @Builder.Default
+    private Double score = 0.0;
+
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     private Presence presence = Presence.PENDING;
 

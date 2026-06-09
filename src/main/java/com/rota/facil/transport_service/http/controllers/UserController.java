@@ -20,12 +20,5 @@ public class UserController {
     private final UserService userService;
     private final FeedBackService feedBackService;
 
-    @PostMapping("/{userId}/evaluate")
-    public ResponseEntity<EvaluateUserResponseDTO> evaluateUser(
-            @AuthenticationPrincipal CurrentUser currentUser,
-            @Valid @RequestBody EvaluateUserRequestDTO request,
-            @PathVariable UUID userId
-    )   {
-        return ResponseEntity.ok(feedBackService.evaluate(currentUser, userId, request));
-    }
+
 }
