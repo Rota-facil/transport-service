@@ -25,7 +25,7 @@ public class RabbitAuthEventConsumer {
     }
 
     @RabbitListener(queues = "${rabbitmq.transport.user.updated.queue}")
-    public void handlerUpdateUser(UserEventReceive updateUser) {
+    public void handlSerUpdateUser(UserEventReceive updateUser) {
         try {
             UserEntity userEntity = userEventMapper.map(updateUser);
             userService.update(userEntity);
