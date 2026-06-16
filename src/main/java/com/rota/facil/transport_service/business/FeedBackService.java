@@ -7,6 +7,7 @@ import com.rota.facil.transport_service.domain.exceptions.UserOfTripNotFoundExce
 import com.rota.facil.transport_service.http.dto.request.user.CurrentUser;
 import com.rota.facil.transport_service.http.dto.request.user.EvaluateUserRequestDTO;
 import com.rota.facil.transport_service.http.dto.response.user.EvaluateUserResponseDTO;
+import com.rota.facil.transport_service.messaging.producers.RabbitTransportUserEventProducer;
 import com.rota.facil.transport_service.persistence.entities.FeedBackEntity;
 import com.rota.facil.transport_service.persistence.entities.TripUserEntity;
 import com.rota.facil.transport_service.persistence.entities.UserEntity;
@@ -28,6 +29,7 @@ public class FeedBackService {
     private final FeedBackRepository feedBackRepository;
     private final TripUserRepository tripUserRepository;
     private final FeedBackMapper feedBackMapper;
+    private final RabbitTransportUserEventProducer userEventProducer;
 
     @Transactional
     public EvaluateUserResponseDTO evaluateByTrip(CurrentUser currentUser, UUID userId, UUID tripId, EvaluateUserRequestDTO request) {
@@ -52,14 +54,16 @@ public class FeedBackService {
 
         this.verifyTypeUserToEvaluation(currentUser, userToEvaluateFound);
 
-        double newMediaNote = feedBackRepository.calculateMediaNoteByUserId(userToEvaluateId);
-
         FeedBackEntity preSaved = feedBackMapper.map(request, currentUserFound, userToEvaluateFound);
         FeedBackEntity saved = feedBackRepository.save(preSaved);
+
+        double newMediaNote = feedBackRepository.calculateMediaNoteByUserId(userToEvaluateId);
+
 
         userToEvaluateFound.setScore(newMediaNote);
         userRepository.save(userToEvaluateFound);
 
+        userEventProducer.feedbackUser(userToEvaluateId, newMediaNote);
         return feedBackMapper.map(saved);
     }
 

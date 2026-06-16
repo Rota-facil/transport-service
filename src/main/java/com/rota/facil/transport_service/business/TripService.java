@@ -238,14 +238,14 @@ public class TripService {
 
         if (isGoing) {
             newBoardPointVisitedFound.setGoing(true);
-            newBoardPointVisitedFound = boardPointVisitedRepository.save(newBoardPointVisitedFound);
+            boardPointVisitedRepository.save(newBoardPointVisitedFound);
             this.setStatusTrip(trip, Progress.BOARD_POINT_ARRIVAL, boardPoint.getName(), arrivalDate, routeFound);
             return;
         }
 
         if (isReturn) {
             newBoardPointVisitedFound.setReturn_(true);
-            newBoardPointVisitedFound = boardPointVisitedRepository.save(newBoardPointVisitedFound);
+            boardPointVisitedRepository.save(newBoardPointVisitedFound);
 
             this.setStatusTrip(trip, Progress.BOARD_POINT_ARRIVAL, boardPoint.getName(), arrivalDate, routeFound);
 
