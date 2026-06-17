@@ -13,6 +13,7 @@ import com.rota.facil.transport_service.http.dto.response.tripUser.TripUserRespo
 import com.rota.facil.transport_service.http.dto.request.user.CurrentUser;
 import com.rota.facil.transport_service.http.dto.response.trip.TripResponseDTO;
 import com.rota.facil.transport_service.messaging.producers.RabbitTransportTripEventProducer;
+import com.rota.facil.transport_service.messaging.producers.RabbitTransportUserEventProducer;
 import com.rota.facil.transport_service.persistence.entities.*;
 import com.rota.facil.transport_service.persistence.mappers.TripMapper;
 import com.rota.facil.transport_service.persistence.mappers.TripUserMapper;
@@ -53,6 +54,7 @@ public class TripService {
     private final InstitutionRepository institutionRepository;
     private final InstitutionVisitedRepository institutionVisitedRepository;
     private final BoardPointVisitedRepository boardPointVisitedRepository;
+    private final RabbitTransportUserEventProducer transportUserEventProducer;
     private final TripMapper tripMapper;
     private final TripUserMapper tripUserMapper;
     private final UserRepository userRepository;
@@ -254,6 +256,7 @@ public class TripService {
             if (this.allInstitutionsAndBoardPointsWhereVisitedInReturn(routeFound, trip)) {
                 this.setStatusTrip(trip, Progress.RETURN_FINISHED, arrivalDate, routeFound);
                 this.setAbsences(trip, Progress.STARTED_FINISHED);
+                this.transportUserEventProducer.completeTripUser(tripUserRepository.findAllUserIdsOfCompletedTripByTripId(trip.getId()));
             }
         }
 
