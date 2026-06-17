@@ -193,4 +193,12 @@ public interface TripUserRepository extends JpaRepository<TripUserEntity, UUID> 
         AND u.id = :userId
     """)
     Optional<TripUserEntity> findByTripIdAndUserId(@Param("tripId") UUID tripId, @Param("userId") UUID userId);
+
+    @Query("""
+        SELECT u.id FROM TripUserEntity tu
+        INNER JOIN tu.user u
+        INNER JOIN tu.trip t
+        WHERE t.id = :tripId
+    """)
+    List<UUID> findAllUserIdsOfCompletedTripByTripId(@Param("tripId") UUID tripId);
 }

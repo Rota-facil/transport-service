@@ -1,12 +1,14 @@
 package com.rota.facil.transport_service.messaging.producers;
 
 import com.rota.facil.transport_service.messaging.dto.send.FeedbackUserEventSend;
+import com.rota.facil.transport_service.messaging.dto.send.user.CompleteTripUserEventSend;
 import com.rota.facil.transport_service.messaging.mappers.UserEventMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -22,8 +24,15 @@ public class RabbitTransportUserEventProducer {
     @Value("${rabbitmq.user.feedback.routing.key}")
     private String userFeedbackRoutingKey;
 
+    @Value("${rabbitmq.user.trip.completed.routing.key}")
+    private String completeUserTripRoutingKey;
+
     public void feedbackUser(UUID userToEvaluateId, double newMediaNote) {
         FeedbackUserEventSend feedbackUserEventSend = userEventMapper.map(userToEvaluateId, newMediaNote);
         rabbitTemplate.convertAndSend(transportExchange, userFeedbackRoutingKey, feedbackUserEventSend);
+    }
+
+    public void completeTripUser(List<UUID> userIds) {
+        rabbitTemplate.convertAndSend(transportExchange, completeUserTripRoutingKey, new CompleteTripUserEventSend(userIds));
     }
 }
