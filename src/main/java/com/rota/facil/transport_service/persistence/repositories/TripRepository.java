@@ -86,4 +86,21 @@ public interface TripRepository extends JpaRepository<TripEntity, UUID> {
         AND t.createdAt = CURRENT_DATE
     """)
     List<TripEntity> findAllByPrefectureIdToday(@Param("prefectureId") UUID prefectureId);
+
+    @Query("""
+        SELECT COUNT(t) FROM TripEntity t
+        INNER JOIN t.route r
+        WHERE r.prefectureId = :prefectureId
+        AND CAST(t.createdAt AS DATE) = CURRENT_DATE
+    """)
+    Long countTodayByPrefectureId(@Param("prefectureId") UUID prefectureId);
+
+    @Query("""
+        SELECT COUNT(t) FROM TripEntity t
+        INNER JOIN t.route r
+        INNER JOIN t.tripStatus ts
+        WHERE r.prefectureId = :prefectureId
+        AND ts.progress = com.rota.facil.transport_service.domain.enums.Progress.CANCELLED
+    """)
+    Long countCancelledByPrefectureId(@Param("prefectureId") UUID prefectureId);
 }

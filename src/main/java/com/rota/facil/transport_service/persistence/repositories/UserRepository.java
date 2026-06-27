@@ -17,4 +17,18 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID> {
         AND u.role IN (com.rota.facil.transport_service.domain.enums.Role.DRIVER)
     """)
     Optional<UserEntity> findDriverById(@Param("driverId") UUID driverId);
+
+    @Query("""
+        SELECT COUNT(u) FROM UserEntity u
+        WHERE u.prefectureId = :prefectureId
+        AND u.role = com.rota.facil.transport_service.domain.enums.Role.STUDENT
+    """)
+    Long countStudentsByPrefectureId(@Param("prefectureId") UUID prefectureId);
+
+    @Query("""
+        SELECT COUNT(u) FROM UserEntity u
+        WHERE u.prefectureId = :prefectureId
+        AND u.role = com.rota.facil.transport_service.domain.enums.Role.DRIVER
+    """)
+    Long countDriversByPrefectureId(@Param("prefectureId") UUID prefectureId);
 }

@@ -73,4 +73,10 @@ public interface RouteRepository extends JpaRepository<RouteEntity, UUID> {
         ORDER BY b.geom
     """)
     List<BoardPointEntity> findAllBoardPointsById(@Param("routeId") UUID routeId);
+
+    @Query("""
+        SELECT COUNT(r) FROM RouteEntity r
+        WHERE r.prefectureId = :prefectureId
+    """)
+    Long countByPrefectureId(@Param("prefectureId") UUID prefectureId);
 }
