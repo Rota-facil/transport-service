@@ -1,6 +1,8 @@
 package com.rota.facil.transport_service.persistence.repositories;
 
 import com.rota.facil.transport_service.persistence.entities.TripEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -85,7 +87,7 @@ public interface TripRepository extends JpaRepository<TripEntity, UUID> {
         WHERE t.prefectureId = :prefectureId
         AND t.createdAt = CURRENT_DATE
     """)
-    List<TripEntity> findAllByPrefectureIdToday(@Param("prefectureId") UUID prefectureId);
+    Page<TripEntity> findAllByPrefectureIdToday(@Param("prefectureId") UUID prefectureId, Pageable pageable);
 
     @Query("""
         SELECT COUNT(t) FROM TripEntity t

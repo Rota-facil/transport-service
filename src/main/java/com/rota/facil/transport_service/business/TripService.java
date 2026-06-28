@@ -22,6 +22,8 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -87,11 +89,9 @@ public class TripService {
     }
 
 
-    public List<TripResponseDTO> list(CurrentUser currentUser) {
-        return tripRepository.findAllByPrefectureIdToday(currentUser.prefectureId())
-                .stream()
-                .map(tripMapper::map)
-                .toList();
+    public Page<TripResponseDTO> list(CurrentUser currentUser, Pageable pageable) {
+        return tripRepository.findAllByPrefectureIdToday(currentUser.prefectureId(), pageable)
+                .map(tripMapper::map);
     }
 
 
