@@ -1,0 +1,1 @@
+ALTER TABLE trips_tb ADD COLUMN IF NOT EXISTS actual_status TEXT NOT NULL;

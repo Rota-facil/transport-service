@@ -35,6 +35,9 @@ public class TripEntity {
     @Column(name = "reason_of_cancellation")
     private String reasonOfCancellation;
 
+    @Column(name = "actual_status")
+    private String actualStatus;
+
     @Builder.Default
     private Double latitude = 0.0;
 

@@ -152,15 +152,16 @@ public class TripService {
 
         Delay delay = this.getDelay(tripFound);
 
-        tripFound.getTripStatus().add(
-                TripStatusEntity.builder()
-                        .trip(tripFound)
-                        .delay(delay)
-                        .progress(Progress.STARTED)
-                        .description(Progress.STARTED.getTitle())
-                        .build()
-        );
+        TripStatusEntity newStatus = TripStatusEntity.builder()
+                .trip(tripFound)
+                .delay(delay)
+                .progress(Progress.STARTED)
+                .description(Progress.STARTED.getTitle())
+                .build();
 
+        tripFound.getTripStatus().add(newStatus);
+
+        tripFound.setActualStatus(newStatus.getProgress().name());
         this.registerIgnoredInstitutionsForGoingTrip(tripFound);
         this.registerIgnoredBoardPointsForGoingTrip(tripFound);
 
@@ -177,13 +178,14 @@ public class TripService {
 
         if (tripStatusRepository.isTripCancelled(tripId)) throw new TripAlreadyCancelledException();
 
-        tripFound.getTripStatus().add(
-                TripStatusEntity.builder()
-                        .trip(tripFound)
-                        .delay(Delay.PUNCTUAL)
-                        .progress(Progress.CANCELLED)
-                        .build()
-        );
+        TripStatusEntity newStatus =         TripStatusEntity.builder()
+                .trip(tripFound)
+                .delay(Delay.PUNCTUAL)
+                .progress(Progress.CANCELLED)
+                .build();
+
+        tripFound.getTripStatus().add(newStatus);
+        tripFound.setActualStatus(newStatus.getProgress().name());
 
         tripFound.setReasonOfCancellation(request.reasonOfCancellation());
 
@@ -445,14 +447,16 @@ public class TripService {
 
     private void saveTripStatus(TripEntity trip, Progress progress, String placeName, LocalDateTime arrivalDate, RouteEntity route) {
         this.validateProgressTripToSave(trip, progress);
-        trip.getTripStatus().add(
-                TripStatusEntity.builder()
-                        .trip(trip)
-                        .progress(progress)
-                        .delay(route.calculateDelay(arrivalDate.toLocalTime(), progress))
-                        .description(placeName != null ? progress.getTitle() + placeName : progress.getTitle())
-                        .build()
-        );
+
+        TripStatusEntity newStatus = TripStatusEntity.builder()
+                .trip(trip)
+                .progress(progress)
+                .delay(route.calculateDelay(arrivalDate.toLocalTime(), progress))
+                .description(placeName != null ? progress.getTitle() + placeName : progress.getTitle())
+                .build();
+
+        trip.getTripStatus().add(newStatus);
+        trip.setActualStatus(newStatus.getProgress().name());
 
         tripRepository.save(trip);
     }

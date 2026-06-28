@@ -34,7 +34,9 @@ public class TripSchedule {
                     .prefectureId(routeRecurring.getRoute().getPrefectureId())
                     .tripStatus(new ArrayList<>())
                     .build();
-            preSavedTrip.getTripStatus().add(TripStatusEntity.builder().trip(preSavedTrip).build());
+            TripStatusEntity status = TripStatusEntity.builder().trip(preSavedTrip).build();
+            preSavedTrip.getTripStatus().add(status);
+            preSavedTrip.setActualStatus(status.getProgress().name());
 
             tripEntities.add(preSavedTrip);
         }

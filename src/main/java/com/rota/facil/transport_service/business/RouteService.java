@@ -109,8 +109,11 @@ public class RouteService {
                         .bus(bus)
                         .prefectureId(currentUser.prefectureId())
                         .build();
+                TripStatusEntity status = TripStatusEntity.builder().trip(createdTrip).build();
+
                 createdTrip.setTripStatus(new ArrayList<>());
-                createdTrip.getTripStatus().add(TripStatusEntity.builder().trip(createdTrip).build());
+                createdTrip.getTripStatus().add(status);
+                createdTrip.setActualStatus(status.getProgress().name());
 
                 tripEntities.add(createdTrip);
             }

@@ -11,6 +11,7 @@ public record TripResponseDTO(
         LocalDateTime createdAt,
         TripBusResponseDTO bus,
         TripRouteResponseDTO route,
+        String actualStatus,
         List<TripStatusResponseDTO> tripStatus
 ) {
 }
