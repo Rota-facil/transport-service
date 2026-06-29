@@ -4,6 +4,7 @@ import java.util.UUID;
 
 public record TripBusResponseDTO(
         UUID id,
+        TripDriverResponseDTO driver,
         UUID prefectureId,
         Long capacity,
         String plate

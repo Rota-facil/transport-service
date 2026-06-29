@@ -105,4 +105,37 @@ public interface TripRepository extends JpaRepository<TripEntity, UUID> {
         AND ts.progress = com.rota.facil.transport_service.domain.enums.Progress.CANCELLED
     """)
     Long countCancelledByPrefectureId(@Param("prefectureId") UUID prefectureId);
+
+    @Query("""
+    SELECT COUNT(t)
+    FROM TripEntity t
+    INNER JOIN t.route r
+    INNER JOIN t.tripStatus ts
+    WHERE r.prefectureId = :prefectureId
+    AND t.createdAt = CURRENT_DATE
+    AND ts.progress = com.rota.facil.transport_service.domain.enums.Progress.STARTED
+""")
+    Long countStartedTodayByPrefectureId(@Param("prefectureId") UUID prefectureId);
+
+    @Query("""
+    SELECT COUNT(t)
+    FROM TripEntity t
+    INNER JOIN t.route r
+    INNER JOIN t.tripStatus ts
+    WHERE r.prefectureId = :prefectureId
+    AND t.createdAt = CURRENT_DATE
+    AND ts.progress = com.rota.facil.transport_service.domain.enums.Progress.STARTED
+    AND ts.delay = com.rota.facil.transport_service.domain.enums.Delay.PUNCTUAL
+""")
+    Long countStartedPunctualTodayByPrefectureId(@Param("prefectureId") UUID prefectureId);
+
+    @Query("""
+        SELECT SUM(t.students) FROM TripEntity t
+        INNER JOIN t.route r
+        INNER JOIN t.tripStatus ts
+        WHERE r.prefectureId = :prefectureId
+        AND t.createdAt = CURRENT_DATE
+        AND ts.progress = com.rota.facil.transport_service.domain.enums.Progress.STARTED
+    """)
+    Long countStudentsServedByPrefectureId(@Param("prefectureId") UUID prefectureId);
 }

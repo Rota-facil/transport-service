@@ -124,9 +124,12 @@ public class TripService {
         InstitutionEntity institutionFound = institutionRepository.findById(request.institutionId())
                 .orElseThrow(InstitutionNotFoundException::new);
 
+        tripFound.increaseStudents();
+        TripEntity tripWithNewStudent = tripRepository.save(tripFound);
+
         TripUserEntity saved = tripUserRepository.save(
                 TripUserEntity.builder()
-                        .trip(tripFound)
+                        .trip(tripWithNewStudent)
                         .user(userFound)
                         .institution(institutionFound)
                         .boardPoint(boardPointFound)
@@ -329,8 +332,14 @@ public class TripService {
     }
 
     public void exitTrip(UUID tripId, CurrentUser currentUser) {
+        TripEntity tripFound = this.fetchEntity(tripId, currentUser.prefectureId());
+
+        tripFound.decreaseStudents();
+        tripRepository.save(tripFound);
+
         TripUserEntity tripUserFound = tripUserRepository.findNotStartedAndNotFinishedByTripIdAndUserId(tripId, currentUser.userId())
                 .orElseThrow(TripUserNotFoundException::new);
+
         tripUserRepository.delete(tripUserFound);
     }
 

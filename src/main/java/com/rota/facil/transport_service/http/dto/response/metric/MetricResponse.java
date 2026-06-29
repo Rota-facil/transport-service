@@ -6,6 +6,9 @@ public record MetricResponse(
         Long cancelledTrips,
         Long students,
         Long drivers,
-        Long bus
+        Long bus,
+        Long totalTripsStarted,
+        Double percentPointTrips,
+        Long studentsServed
 ) {
 }

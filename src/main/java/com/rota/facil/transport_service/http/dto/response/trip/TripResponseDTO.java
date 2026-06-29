@@ -8,6 +8,7 @@ public record TripResponseDTO(
         UUID id,
         String name,
         String reasonOfCancellation,
+        Long students,
         LocalDateTime createdAt,
         TripBusResponseDTO bus,
         TripRouteResponseDTO route,

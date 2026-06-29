@@ -28,6 +28,9 @@ public class TripEntity {
     @JoinColumn(name = "bus_id")
     private BusEntity bus;
 
+    @Builder.Default
+    private Long students = 0L;
+
     @ManyToOne
     @JoinColumn(name = "route_id")
     private RouteEntity route;
@@ -81,6 +84,14 @@ public class TripEntity {
     @Override
     public int hashCode() {
         return getClass().hashCode();
+    }
+
+    public void increaseStudents() {
+        this.students++;
+    }
+
+    public void decreaseStudents() {
+        this.students--;
     }
 
     public void updateCoordinates(double latitude, double longitude) {

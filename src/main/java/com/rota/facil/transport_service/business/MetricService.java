@@ -25,7 +25,16 @@ public class MetricService {
         Long students = userRepository.countStudentsByPrefectureId(currentUser.prefectureId());
         Long drivers = userRepository.countDriversByPrefectureId(currentUser.prefectureId());
 
+        Long studentsServed = tripRepository.countStudentsServedByPrefectureId(currentUser.prefectureId());
+
         Long bus = busRepository.countByPrefectureId(currentUser.prefectureId());
+
+        long totalTripsStarted = tripRepository.countStartedTodayByPrefectureId(currentUser.prefectureId());
+        long punctualTrips = tripRepository.countStartedPunctualTodayByPrefectureId(currentUser.prefectureId());
+
+        Double percentPointTrips = totalTripsStarted == 0
+                ? 100.0
+                : punctualTrips * 100.0 / totalTripsStarted;
 
         return new MetricResponse(
                 activeRoutes,
@@ -33,7 +42,10 @@ public class MetricService {
                 cancelledTrips,
                 students,
                 drivers,
-                bus
+                bus,
+                totalTripsStarted,
+                percentPointTrips,
+                studentsServed == null ? 0L : studentsServed
         );
     }
 }
