@@ -1,4 +1,4 @@
-package com.rota.facil.transport_service.messaging.dto.send;
+package com.rota.facil.transport_service.messaging.dto.send.trip;
 
 import com.rota.facil.transport_service.domain.enums.ActionType;
 import com.rota.facil.transport_service.domain.enums.ResourceName;
@@ -15,9 +15,14 @@ public record TripEventSend(
         ResourceName resourceName,
         UUID resourceId,
 
+        UUID prefectureId,
+        UUID driverId,
+        String driverEmail,
         UUID tripId,
+        String routeName,
+        String reasonOfCancellation,
         String latitude,
         String longitude,
-        List<String> emails
+        List<StudentInfoEventSend> studentInfo
 ) {
 }

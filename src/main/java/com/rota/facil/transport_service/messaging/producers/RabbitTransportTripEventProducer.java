@@ -2,8 +2,9 @@ package com.rota.facil.transport_service.messaging.producers;
 
 import com.rota.facil.transport_service.domain.enums.ActionType;
 import com.rota.facil.transport_service.http.dto.request.user.CurrentUser;
-import com.rota.facil.transport_service.messaging.dto.send.TripEventSend;
+import com.rota.facil.transport_service.messaging.dto.send.trip.TripEventSend;
 import com.rota.facil.transport_service.messaging.mappers.TripEventMapper;
+import com.rota.facil.transport_service.persistence.dto.StudentPersistenceDTO;
 import com.rota.facil.transport_service.persistence.entities.TripEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -37,9 +38,9 @@ public class RabbitTransportTripEventProducer {
         rabbitTemplate.convertAndSend(transportExchange, tripCreatedRoutingKey, tripEventSend);
     }
 
-    public void cancelTripEvent(TripEntity cancelTrip, CurrentUser currentUser, List<String> emails) {
+    public void cancelTripEvent(TripEntity cancelTrip, CurrentUser currentUser, List<StudentPersistenceDTO> studentsInfo) {
         String title =  currentUser.email() + ActionType.UPDATE + "viagem para status de cancelado";
-        TripEventSend tripEventSend = tripEventMapper.map(cancelTrip, currentUser, ActionType.UPDATE, title, emails);
+        TripEventSend tripEventSend = tripEventMapper.map(cancelTrip, currentUser, ActionType.UPDATE, title, studentsInfo);
         rabbitTemplate.convertAndSend(transportExchange, tripCancelledRoutingKey, tripEventSend);
 
     }

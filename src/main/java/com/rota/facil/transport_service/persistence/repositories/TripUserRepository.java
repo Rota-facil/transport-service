@@ -1,6 +1,7 @@
 package com.rota.facil.transport_service.persistence.repositories;
 
 import com.rota.facil.transport_service.domain.enums.Progress;
+import com.rota.facil.transport_service.persistence.dto.StudentPersistenceDTO;
 import com.rota.facil.transport_service.persistence.entities.BoardPointEntity;
 import com.rota.facil.transport_service.persistence.entities.InstitutionEntity;
 import com.rota.facil.transport_service.persistence.entities.TripEntity;
@@ -37,12 +38,15 @@ public interface TripUserRepository extends JpaRepository<TripUserEntity, UUID> 
     int countPassengersByTripIdAndGoingAndReturn(@Param("tripId") UUID tripId, @Param("going") boolean going, @Param("return") boolean return_);
 
     @Query("""
-        SELECT u.email FROM TripUserEntity tu
+        SELECT new com.rota.facil.transport_service.persistence.dto.StudentPersistenceDTO(
+                u.id,
+                u.email
+            ) FROM TripUserEntity tu
         INNER JOIN tu.user u
         INNER JOIN tu.trip t
         WHERE t.id = :tripId
     """)
-    List<String> findAllEmailsByTripId(@Param("tripId") UUID tripId);
+    List<StudentPersistenceDTO> findAllStudentsIdsAndEmailsByTripId(@Param("tripId") UUID tripId);
 
     @Query("""
         SELECT t FROM TripUserEntity tu

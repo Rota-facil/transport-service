@@ -14,6 +14,7 @@ import com.rota.facil.transport_service.http.dto.request.user.CurrentUser;
 import com.rota.facil.transport_service.http.dto.response.trip.TripResponseDTO;
 import com.rota.facil.transport_service.messaging.producers.RabbitTransportTripEventProducer;
 import com.rota.facil.transport_service.messaging.producers.RabbitTransportUserEventProducer;
+import com.rota.facil.transport_service.persistence.dto.StudentPersistenceDTO;
 import com.rota.facil.transport_service.persistence.entities.*;
 import com.rota.facil.transport_service.persistence.mappers.TripMapper;
 import com.rota.facil.transport_service.persistence.mappers.TripUserMapper;
@@ -193,11 +194,11 @@ public class TripService {
         tripFound.setReasonOfCancellation(request.reasonOfCancellation());
 
 
-        List<String> emails = tripUserRepository.findAllEmailsByTripId(tripId);
+        List<StudentPersistenceDTO> studentsInfo = tripUserRepository.findAllStudentsIdsAndEmailsByTripId(tripId);
 
         TripEntity saved = tripRepository.save(tripFound);
 
-        if (!emails.isEmpty()) tripEventProducer.cancelTripEvent(saved, currentUser, emails);
+        if (!studentsInfo.isEmpty()) tripEventProducer.cancelTripEvent(saved, currentUser, studentsInfo);
         return tripMapper.map(saved);
     }
 
