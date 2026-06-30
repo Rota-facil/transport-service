@@ -165,7 +165,7 @@ public class TripService {
 
         tripFound.getTripStatus().add(newStatus);
 
-        tripFound.setActualStatus(newStatus.getProgress().name());
+        tripFound.setActualStatus(newStatus.getProgress());
         this.registerIgnoredInstitutionsForGoingTrip(tripFound);
         this.registerIgnoredBoardPointsForGoingTrip(tripFound);
 
@@ -189,7 +189,7 @@ public class TripService {
                 .build();
 
         tripFound.getTripStatus().add(newStatus);
-        tripFound.setActualStatus(newStatus.getProgress().name());
+        tripFound.setActualStatus(newStatus.getProgress());
 
         tripFound.setReasonOfCancellation(request.reasonOfCancellation());
 
@@ -198,7 +198,7 @@ public class TripService {
 
         TripEntity saved = tripRepository.save(tripFound);
 
-        if (!studentsInfo.isEmpty()) tripEventProducer.cancelTripEvent(saved, currentUser, studentsInfo);
+        tripEventProducer.cancelTripEvent(saved, currentUser, studentsInfo);
         return tripMapper.map(saved);
     }
 
@@ -466,7 +466,7 @@ public class TripService {
                 .build();
 
         trip.getTripStatus().add(newStatus);
-        trip.setActualStatus(newStatus.getProgress().name());
+        trip.setActualStatus(newStatus.getProgress());
 
         tripRepository.save(trip);
     }

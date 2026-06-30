@@ -1,5 +1,6 @@
 package com.rota.facil.transport_service.persistence.entities;
 
+import com.rota.facil.transport_service.domain.enums.Progress;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -38,8 +39,9 @@ public class TripEntity {
     @Column(name = "reason_of_cancellation")
     private String reasonOfCancellation;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "actual_status")
-    private String actualStatus;
+    private Progress actualStatus;
 
     @Builder.Default
     private Double latitude = 0.0;

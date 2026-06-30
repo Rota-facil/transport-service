@@ -79,4 +79,16 @@ public interface RouteRepository extends JpaRepository<RouteEntity, UUID> {
         WHERE r.prefectureId = :prefectureId
     """)
     Long countByPrefectureId(@Param("prefectureId") UUID prefectureId);
+
+    @Query("""
+        SELECT COUNT(t)
+        FROM TripEntity t
+        WHERE t.route.id = :routeId
+        AND t.actualStatus NOT IN (
+            com.rota.facil.transport_service.domain.enums.Progress.CANCELLED,
+            com.rota.facil.transport_service.domain.enums.Progress.RETURN_FINISHED
+        )
+        AND t.actualStatus != com.rota.facil.transport_service.domain.enums.Progress.NOT_STARTED
+    """)
+    int countTripsStartedById(@Param("routeId") UUID routeId);
 }

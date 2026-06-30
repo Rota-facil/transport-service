@@ -29,5 +29,6 @@ public interface TripEventMapper {
     @Mapping(target = "driverId", source = "currentUser.userId")
     @Mapping(target = "driverEmail", source = "currentUser.email")
     @Mapping(target = "prefectureId", source = "currentUser.prefectureId")
+    @Mapping(target = "routeName", source = "entity.route.name")
     TripEventSend map(TripEntity entity, CurrentUser currentUser, ActionType actionType, String actionTitle, List<StudentPersistenceDTO> studentInfo);
 }

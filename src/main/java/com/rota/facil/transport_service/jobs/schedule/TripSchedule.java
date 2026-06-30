@@ -36,7 +36,7 @@ public class TripSchedule {
                     .build();
             TripStatusEntity status = TripStatusEntity.builder().trip(preSavedTrip).build();
             preSavedTrip.getTripStatus().add(status);
-            preSavedTrip.setActualStatus(status.getProgress().name());
+            preSavedTrip.setActualStatus(status.getProgress());
 
             tripEntities.add(preSavedTrip);
         }

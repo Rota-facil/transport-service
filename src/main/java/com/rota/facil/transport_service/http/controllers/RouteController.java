@@ -3,6 +3,7 @@ package com.rota.facil.transport_service.http.controllers;
 import com.rota.facil.transport_service.business.RouteService;
 import com.rota.facil.transport_service.http.dto.request.route.CreateBoardPointRouteRequestDTO;
 import com.rota.facil.transport_service.http.dto.request.route.CreateRouteRequestDTO;
+import com.rota.facil.transport_service.http.dto.request.route.UpdateRouteRequestDTO;
 import com.rota.facil.transport_service.http.dto.request.user.CurrentUser;
 import com.rota.facil.transport_service.http.dto.response.client.intelligence.RouteInterpretationResponseDTO;
 import com.rota.facil.transport_service.http.dto.response.route.RouteHeatMapResponseDTO;
@@ -49,6 +50,15 @@ public class RouteController {
             @AuthenticationPrincipal CurrentUser currentUser
     ) {
         return ResponseEntity.ok(routeService.generateRouteBoardPointHeatMap(routeId, currentUser));
+    }
+
+    @PutMapping("/{routeId}")
+    public ResponseEntity<RouteResponseDTO> updateRoute(
+            @PathVariable UUID routeId,
+            @AuthenticationPrincipal CurrentUser currentUser,
+            @RequestBody UpdateRouteRequestDTO request
+    ) {
+       return ResponseEntity.ok(routeService.update(routeId, currentUser, request));
     }
 
     @GetMapping

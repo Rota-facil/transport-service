@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -113,7 +114,7 @@ public class RouteService {
 
                 createdTrip.setTripStatus(new ArrayList<>());
                 createdTrip.getTripStatus().add(status);
-                createdTrip.setActualStatus(status.getProgress().name());
+                createdTrip.setActualStatus(status.getProgress());
 
                 tripEntities.add(createdTrip);
             }
@@ -203,6 +204,144 @@ public class RouteService {
 
         return intelligenceHttpClient.generateRouteHeatMap(routeMapper.map(routeFound.getId(), points, currentUser));
     }
+
+    public RouteResponseDTO update(UUID routeId, CurrentUser currentUser, UpdateRouteRequestDTO request) {
+        RouteEntity routeFound = this.fetchEntity(routeId, currentUser.prefectureId());
+
+        if (routeRepository.countTripsStartedById(routeId) > 0) throw new NotAllowedToUpdateRouteException("Não é permitido atualizar rota porque ainda existem viagens em andamento nessa rota atual");
+
+        routeFound.setName(request.name());
+        routeFound.setShift(request.shift());
+        routeFound.setGoing(request.going());
+        routeFound.setReturn_(request.return_());
+        routeFound.setGoingFinish(request.goingFinish());
+        routeFound.setReturnFinish(request.returnFinish());
+
+        this.updateInstitution(routeFound, request.institutionsIds().stream().toList());
+        this.updateDaysOfWeek(routeFound, request.daysOfWeek());
+        this.updateBoardPoints(routeFound, request.boardPoints());
+
+        return routeMapper.map(routeRepository.save(routeFound));
+    }
+
+    private void updateInstitution(RouteEntity route, List<UUID> requestedIds) {
+        Set<InstitutionEntity> currentInstitutions = route.getInstitutions();
+
+        Set<UUID> currentIds = currentInstitutions.stream()
+                .map(InstitutionEntity::getId)
+                .collect(Collectors.toSet());
+
+        Set<UUID> idsToRemove = currentIds.stream()
+                .filter(id -> !requestedIds.contains(id))
+                .collect(Collectors.toSet());
+
+        Set<UUID> idsToAdd = requestedIds.stream()
+                .filter(id -> !currentIds.contains(id))
+                .collect(Collectors.toSet());
+
+        currentInstitutions.removeIf(i -> idsToRemove.contains(i.getId()));
+
+        if (!idsToAdd.isEmpty()) {
+
+            List<InstitutionEntity> institutions =
+                    institutionRepository.findAllById(idsToAdd);
+
+            if (institutions.size() != idsToAdd.size()) {
+                throw new InstitutionNotFoundException("Uma ou mais instituições não foram encontradas.");
+            }
+
+            currentInstitutions.addAll(institutions);
+        }
+    }
+
+    private void updateDaysOfWeek(RouteEntity route,
+                                  List<DaysOfWeek> days) {
+
+        route.setDaysOfWeek(new HashSet<>(days));
+    }
+
+    private void updateBoardPoints(
+            RouteEntity route,
+            List<CreateBoardPointRouteRequestDTO> requestBoardPoints
+    ) {
+
+        List<BoardPointRouteEntity> currentBoardPoints = route.getBoardPoints();
+
+        Map<UUID, BoardPointRouteEntity> currentByBoardPointId =
+                currentBoardPoints.stream()
+                        .collect(Collectors.toMap(
+                                bp -> bp.getBoardPoint().getId(),
+                                Function.identity()
+                        ));
+
+        Map<UUID, CreateBoardPointRouteRequestDTO> requestedByBoardPointId =
+                requestBoardPoints.stream()
+                        .collect(Collectors.toMap(
+                                CreateBoardPointRouteRequestDTO::boardPointId,
+                                Function.identity()
+                        ));
+
+        Set<UUID> currentIds = currentByBoardPointId.keySet();
+        Set<UUID> requestedIds = requestedByBoardPointId.keySet();
+
+        Set<UUID> idsToAdd = requestedIds.stream()
+                .filter(id -> !currentIds.contains(id))
+                .collect(Collectors.toSet());
+
+        Set<UUID> idsToRemove = currentIds.stream()
+                .filter(id -> !requestedIds.contains(id))
+                .collect(Collectors.toSet());
+
+        // Atualiza os existentes
+        requestedIds.stream()
+                .filter(currentIds::contains)
+                .forEach(id -> {
+
+                    BoardPointRouteEntity entity = currentByBoardPointId.get(id);
+                    CreateBoardPointRouteRequestDTO dto = requestedByBoardPointId.get(id);
+
+                    entity.setBoardTimeGoing(dto.boardTimeGoing());
+                    entity.setBoardTimeFinish(dto.boardTimeFinish());
+                });
+
+        currentBoardPoints.removeIf(bp ->
+                idsToRemove.contains(bp.getBoardPoint().getId())
+        );
+
+        if (!idsToAdd.isEmpty()) {
+
+            List<BoardPointEntity> boardPoints =
+                    boardPointRepository.findAllById(idsToAdd);
+
+            if (boardPoints.size() != idsToAdd.size()) {
+                throw new BoardPointNotFoundException("Um ou mais pontos de embarque não foram encontrados.");
+            }
+
+            Map<UUID, BoardPointEntity> boardPointMap =
+                    boardPoints.stream()
+                            .collect(Collectors.toMap(
+                                    BoardPointEntity::getId,
+                                    Function.identity()
+                            ));
+
+            idsToAdd.forEach(id -> {
+
+                CreateBoardPointRouteRequestDTO dto =
+                        requestedByBoardPointId.get(id);
+
+                BoardPointRouteEntity entity =
+                        BoardPointRouteEntity.builder()
+                                .route(route)
+                                .boardPoint(boardPointMap.get(id))
+                                .boardTimeGoing(dto.boardTimeGoing())
+                                .boardTimeFinish(dto.boardTimeFinish())
+                                .build();
+
+                currentBoardPoints.add(entity);
+            });
+        }
+    }
+
 
     private RouteEntity fetchEntity(UUID routeId) {
         return routeRepository.findById(routeId)
