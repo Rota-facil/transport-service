@@ -7,6 +7,7 @@ import com.rota.facil.transport_service.http.dto.response.tripUser.SimpleTripUse
 import com.rota.facil.transport_service.http.dto.response.tripUser.TripUserResponseDTO;
 import com.rota.facil.transport_service.http.dto.request.user.CurrentUser;
 import com.rota.facil.transport_service.http.dto.response.trip.TripResponseDTO;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
+@SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequestMapping("/trips")
 @RequiredArgsConstructor

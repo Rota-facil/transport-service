@@ -8,6 +8,7 @@ import com.rota.facil.transport_service.http.dto.request.user.CurrentUser;
 import com.rota.facil.transport_service.http.dto.response.client.intelligence.RouteInterpretationResponseDTO;
 import com.rota.facil.transport_service.http.dto.response.route.RouteHeatMapResponseDTO;
 import com.rota.facil.transport_service.http.dto.response.route.RouteResponseDTO;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
+@SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequestMapping("/routes")
 @RequiredArgsConstructor
