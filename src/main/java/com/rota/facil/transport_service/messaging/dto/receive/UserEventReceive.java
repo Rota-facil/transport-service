@@ -8,6 +8,7 @@ public record UserEventReceive(
         UUID userId,
         UUID prefectureId,
         String name,
+        String cpf,
         String email,
         Role role
 ) {

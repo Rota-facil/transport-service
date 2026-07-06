@@ -29,6 +29,8 @@ public class UserEntity {
     @Builder.Default
     private Double score = 5.0;
 
+    private String cpf;
+
     @Builder.Default
     private Boolean active = true;
 
@@ -50,6 +52,7 @@ public class UserEntity {
         if (userEntity.getName() != null) this.name = userEntity.getName();
         if (userEntity.getEmail() != null) this.email = userEntity.getEmail();
         if (userEntity.getScore() != null) this.score = userEntity.getScore();
+        if (userEntity.getCpf() != null) this.cpf = userEntity.getCpf();
     }
 
     @Override

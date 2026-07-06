@@ -10,6 +10,7 @@ public record DriverResponseDTO(
         UUID prefectureId,
         String name,
         String email,
+        String cpf,
         Double score,
         Boolean active,
         DriverBusResponseDTO bus,
