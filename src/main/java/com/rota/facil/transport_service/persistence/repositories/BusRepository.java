@@ -29,5 +29,5 @@ public interface BusRepository extends JpaRepository<BusEntity, UUID> {
         SELECT b FROM BusEntity b
         WHERE b.prefectureId = :prefectureId
     """)
-    List<BusEntity> findAllByPrefectureId(@Param("prefectureId)") UUID prefectureId);
+    List<BusEntity> findAllByPrefectureId(@Param("prefectureId") UUID prefectureId);
 }
