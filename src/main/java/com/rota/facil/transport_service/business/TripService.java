@@ -36,13 +36,6 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 public class TripService {
-
-    @Value("${init.trip.before.minutes}")
-    private Long INIT_TRIP_BEFORE_MINUTES;
-
-    @Value("${init.trip.after.minutes}")
-    private Long INIT_TRIP_AFTER_MINUTES;
-
     private static final Logger log = LoggerFactory.getLogger(TripService.class);
 
 
@@ -171,6 +164,11 @@ public class TripService {
 
         driverFound.moveToOnRoute();
         driverFound = userRepository.save(driverFound);
+
+        BusEntity bus = tripFound.getBus();
+        bus.moveToOperation();
+        bus = busRepository.save(bus);
+
         return tripMapper.map(tripRepository.save(tripFound));
     }
 
@@ -202,6 +200,10 @@ public class TripService {
 
         driverFound.moveToAvailable();
         driverFound = userRepository.save(driverFound);
+
+        BusEntity bus = tripFound.getBus();
+        bus.moveToOutOfOperation();
+        bus = busRepository.save(bus);
 
         tripEventProducer.cancelTripEvent(saved, currentUser, studentsInfo);
         return tripMapper.map(saved);
@@ -275,6 +277,9 @@ public class TripService {
                 List<UUID> userIds = tripUserRepository.findAllUserIdsOfCompletedTripByTripId(trip.getId());
 
                 userRepository.increaseTripCompletedByUserIds(userIds);
+                BusEntity bus = trip.getBus();
+                bus.moveToOutOfOperation();
+                bus = busRepository.save(bus);
 
                 this.transportUserEventProducer.completeTripUser(userIds);
             }

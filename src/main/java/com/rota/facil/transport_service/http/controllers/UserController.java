@@ -2,6 +2,7 @@ package com.rota.facil.transport_service.http.controllers;
 
 import com.rota.facil.transport_service.business.UserService;
 import com.rota.facil.transport_service.http.dto.request.user.CurrentUser;
+import com.rota.facil.transport_service.http.dto.request.user.UpdateBusOfDriverRequestDTO;
 import com.rota.facil.transport_service.http.dto.response.user.DriverResponseDTO;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
@@ -21,5 +22,14 @@ public class UserController {
     @GetMapping("/drivers")
     public ResponseEntity<List<DriverResponseDTO>> listDrivers(@AuthenticationPrincipal CurrentUser currentUser) {
         return ResponseEntity.ok(userService.listDrivers(currentUser));
+    }
+
+    @PatchMapping("/drivers/{driverId}")
+    public ResponseEntity<Void> updateBusOfDriver(
+            @AuthenticationPrincipal CurrentUser currentUser,
+            @RequestBody UpdateBusOfDriverRequestDTO request
+    ) {
+        userService.updateBusOfDriver(request, currentUser);
+        return ResponseEntity.ok().build();
     }
 }

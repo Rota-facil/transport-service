@@ -1,5 +1,6 @@
 package com.rota.facil.transport_service.persistence.entities;
 
+import com.rota.facil.transport_service.domain.enums.BusStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -32,6 +33,10 @@ public class BusEntity {
     private String plate;
 
     @Builder.Default
+    @Enumerated(EnumType.STRING)
+    private BusStatus status = BusStatus.OUT_OF_OPERATION;
+
+    @Builder.Default
     @CreationTimestamp
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
@@ -46,5 +51,13 @@ public class BusEntity {
     @Override
     public int hashCode() {
         return getClass().hashCode();
+    }
+
+    public void moveToOperation() {
+        this.status = BusStatus.OPERATION;
+    }
+
+    public void moveToOutOfOperation() {
+        this.status = BusStatus.OUT_OF_OPERATION;
     }
 }

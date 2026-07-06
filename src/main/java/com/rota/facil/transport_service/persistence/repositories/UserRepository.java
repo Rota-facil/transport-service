@@ -49,4 +49,11 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID> {
         WHERE u.id IN (:userIds)
     """)
     void increaseTripCompletedByUserIds(@Param("userIds") List<UUID> userIds);
+
+    @Query("""
+        SELECT u FROM UserEntity u
+        WHERE u.id = :driverId
+        AND u.prefectureId = :prefectureId
+    """)
+    Optional<UserEntity> findDriverByIdAndPrefectureId(@Param("driverId") UUID driverId, @Param("prefectureId") UUID prefectureId);
 }
