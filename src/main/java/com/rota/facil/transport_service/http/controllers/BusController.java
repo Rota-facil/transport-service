@@ -30,12 +30,15 @@ public class BusController {
     }
 
     @GetMapping("/{busId}")
-    public ResponseEntity<BusResponseDTO> fetchBus(@PathVariable UUID busId) {
-        return ResponseEntity.ok(busService.fetch(busId));
+    public ResponseEntity<BusResponseDTO> fetchBus(
+            @PathVariable UUID busId,
+            @AuthenticationPrincipal CurrentUser currentUser
+    ) {
+        return ResponseEntity.ok(busService.fetch(busId, currentUser));
     }
 
     @GetMapping
-    public ResponseEntity<List<BusResponseDTO>> listBus() {
-        return ResponseEntity.ok(busService.list());
+    public ResponseEntity<List<BusResponseDTO>> listBus(@AuthenticationPrincipal CurrentUser currentUser) {
+        return ResponseEntity.ok(busService.list(currentUser));
     }
 }

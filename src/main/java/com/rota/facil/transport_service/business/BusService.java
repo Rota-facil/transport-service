@@ -36,12 +36,12 @@ public class BusService {
         return busMapper.map(busRepository.save(preSaved));
     }
 
-    public BusResponseDTO fetch(UUID busId) {
-        return busMapper.map(this.fetchEntity(busId));
+    public BusResponseDTO fetch(UUID busId, CurrentUser currentUser) {
+        return busMapper.map(this.fetchEntityByPrefectureId(busId, currentUser.prefectureId()));
     }
 
-    public List<BusResponseDTO> list() {
-        return busRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"))
+    public List<BusResponseDTO> list(CurrentUser currentUser) {
+        return busRepository.findAllByPrefectureId(currentUser.prefectureId())
                 .stream()
                 .map(busMapper::map)
                 .toList();
@@ -49,6 +49,11 @@ public class BusService {
 
     private BusEntity fetchEntity(UUID busId) {
         return busRepository.findById(busId)
+                .orElseThrow(BusNotFoundException::new);
+    }
+
+    private BusEntity fetchEntityByPrefectureId(UUID busId, UUID prefectureId) {
+        return busRepository.findByIdAndPrefectureId(busId, prefectureId)
                 .orElseThrow(BusNotFoundException::new);
     }
 }
