@@ -31,7 +31,7 @@ public class UserService {
     public void update(UserEntity userEntity) {
         UserEntity userFound = this.fetchEntity(userEntity.getId());
         userFound.update(userEntity);
-        userRepository.save(userEntity);
+        userRepository.save(userFound);
     }
 
     public void delete(UserEntity userEntity) {
