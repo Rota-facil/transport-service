@@ -42,8 +42,8 @@ public class UserService {
         userRepository.save(userFound);
     }
 
-    public void updateBusOfDriver(UpdateBusOfDriverRequestDTO request, CurrentUser currentUser) {
-        UserEntity driverFound = userRepository.findDriverByIdAndPrefectureId(request.driverId(), currentUser.prefectureId())
+    public void updateBusOfDriver(UpdateBusOfDriverRequestDTO request, CurrentUser currentUser, UUID driverId) {
+        UserEntity driverFound = userRepository.findDriverByIdAndPrefectureId(driverId, currentUser.prefectureId())
                 .orElseThrow(UserNotFoundException::new);
         BusEntity busFound = busRepository.findByIdAndPrefectureId(request.busId(), currentUser.prefectureId())
                 .orElseThrow(BusNotFoundException::new);

@@ -11,6 +11,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @SecurityRequirement(name = "bearerAuth")
 @RestController
@@ -27,9 +28,10 @@ public class UserController {
     @PatchMapping("/drivers/{driverId}")
     public ResponseEntity<Void> updateBusOfDriver(
             @AuthenticationPrincipal CurrentUser currentUser,
-            @RequestBody UpdateBusOfDriverRequestDTO request
+            @RequestBody UpdateBusOfDriverRequestDTO request,
+            @PathVariable UUID driverId
     ) {
-        userService.updateBusOfDriver(request, currentUser);
+        userService.updateBusOfDriver(request, currentUser, driverId);
         return ResponseEntity.ok().build();
     }
 }
