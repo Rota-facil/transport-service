@@ -25,7 +25,7 @@ public class UserController {
         return ResponseEntity.ok(userService.listDrivers(currentUser));
     }
 
-    @PatchMapping("/drivers/{driverId}")
+    @PatchMapping("/drivers/{driverId}/bus/change")
     public ResponseEntity<Void> updateBusOfDriver(
             @AuthenticationPrincipal CurrentUser currentUser,
             @RequestBody UpdateBusOfDriverRequestDTO request,
