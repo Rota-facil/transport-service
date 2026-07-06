@@ -1,5 +1,6 @@
 package com.rota.facil.transport_service.persistence.entities;
 
+import com.rota.facil.transport_service.domain.enums.DriverStatus;
 import com.rota.facil.transport_service.domain.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
@@ -34,6 +35,9 @@ public class UserEntity {
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    @Enumerated(EnumType.STRING)
+    private DriverStatus status;
+
     public void update(UserEntity userEntity) {
         if (userEntity.getPrefectureId() != null) this.prefectureId = userEntity.getPrefectureId();
         if (userEntity.getName() != null) this.name = userEntity.getName();
@@ -67,5 +71,13 @@ public class UserEntity {
 
     public boolean isNotStudent() {
         return !this.isStudent();
+    }
+
+    public void moveToAvailable() {
+        if (this.getRole().equals(Role.DRIVER)) this.setStatus(DriverStatus.AVAILABLE);
+    }
+
+    public void moveToOnRoute() {
+        if (this.getRole().equals(Role.DRIVER)) this.setStatus(DriverStatus.ON_ROUTE);
     }
 }

@@ -1,5 +1,7 @@
 package com.rota.facil.transport_service.business;
 
+import com.rota.facil.transport_service.domain.enums.DriverStatus;
+import com.rota.facil.transport_service.domain.enums.Role;
 import com.rota.facil.transport_service.domain.exceptions.UserNotFoundException;
 import com.rota.facil.transport_service.persistence.entities.UserEntity;
 import com.rota.facil.transport_service.persistence.repositories.TripRepository;
@@ -17,6 +19,7 @@ public class UserService {
     private final TripUserRepository tripUserRepository;
 
     public void register(UserEntity user) {
+        user.moveToAvailable();
         userRepository.save(user);
     }
 

@@ -169,6 +169,8 @@ public class TripService {
         this.registerIgnoredInstitutionsForGoingTrip(tripFound);
         this.registerIgnoredBoardPointsForGoingTrip(tripFound);
 
+        driverFound.moveToOnRoute();
+        driverFound = userRepository.save(driverFound);
         return tripMapper.map(tripRepository.save(tripFound));
     }
 
@@ -197,6 +199,9 @@ public class TripService {
         List<StudentPersistenceDTO> studentsInfo = tripUserRepository.findAllStudentsIdsAndEmailsByTripId(tripId);
 
         TripEntity saved = tripRepository.save(tripFound);
+
+        driverFound.moveToAvailable();
+        driverFound = userRepository.save(driverFound);
 
         tripEventProducer.cancelTripEvent(saved, currentUser, studentsInfo);
         return tripMapper.map(saved);
@@ -262,6 +267,10 @@ public class TripService {
             if (this.allInstitutionsAndBoardPointsWhereVisitedInReturn(routeFound, trip)) {
                 this.setStatusTrip(trip, Progress.RETURN_FINISHED, arrivalDate, routeFound);
                 this.setAbsences(trip, Progress.STARTED_FINISHED);
+                UserEntity driverFound = trip.getBus().getDriver();
+
+                driverFound.moveToAvailable();
+                userRepository.save(driverFound);
                 this.transportUserEventProducer.completeTripUser(tripUserRepository.findAllUserIdsOfCompletedTripByTripId(trip.getId()));
             }
         }
