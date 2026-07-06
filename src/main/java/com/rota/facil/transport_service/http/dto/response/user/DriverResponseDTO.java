@@ -12,6 +12,8 @@ public record DriverResponseDTO(
         String email,
         Double score,
         Boolean active,
+        DriverBusResponseDTO bus,
+        Long completedTrips,
         DriverStatus status,
         Role role
 ) {

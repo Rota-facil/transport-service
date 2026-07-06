@@ -271,7 +271,12 @@ public class TripService {
 
                 driverFound.moveToAvailable();
                 userRepository.save(driverFound);
-                this.transportUserEventProducer.completeTripUser(tripUserRepository.findAllUserIdsOfCompletedTripByTripId(trip.getId()));
+
+                List<UUID> userIds = tripUserRepository.findAllUserIdsOfCompletedTripByTripId(trip.getId());
+
+                userRepository.increaseTripCompletedByUserIds(userIds);
+
+                this.transportUserEventProducer.completeTripUser(userIds);
             }
         }
 

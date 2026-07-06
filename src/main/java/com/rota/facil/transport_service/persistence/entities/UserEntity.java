@@ -32,6 +32,13 @@ public class UserEntity {
     @Builder.Default
     private Boolean active = true;
 
+    @OneToOne(mappedBy = "driver")
+    private BusEntity bus;
+
+    @Builder.Default
+    @Column(name = "completed_trips")
+    private Long completedTrips = 0L;
+
     @Enumerated(EnumType.STRING)
     private Role role;
 
@@ -80,4 +87,5 @@ public class UserEntity {
     public void moveToOnRoute() {
         if (this.getRole().equals(Role.DRIVER)) this.setStatus(DriverStatus.ON_ROUTE);
     }
+
 }

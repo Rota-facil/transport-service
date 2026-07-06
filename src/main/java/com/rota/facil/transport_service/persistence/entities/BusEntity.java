@@ -23,7 +23,7 @@ public class BusEntity {
 
     private UUID prefectureId;
 
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "driver_id")
     private UserEntity driver;
 
