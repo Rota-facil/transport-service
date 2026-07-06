@@ -3,13 +3,17 @@ package com.rota.facil.transport_service.business;
 import com.rota.facil.transport_service.domain.enums.DriverStatus;
 import com.rota.facil.transport_service.domain.enums.Role;
 import com.rota.facil.transport_service.domain.exceptions.UserNotFoundException;
+import com.rota.facil.transport_service.http.dto.request.user.CurrentUser;
+import com.rota.facil.transport_service.http.dto.response.user.DriverResponseDTO;
 import com.rota.facil.transport_service.persistence.entities.UserEntity;
+import com.rota.facil.transport_service.persistence.mappers.UserMapper;
 import com.rota.facil.transport_service.persistence.repositories.TripRepository;
 import com.rota.facil.transport_service.persistence.repositories.TripUserRepository;
 import com.rota.facil.transport_service.persistence.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -17,6 +21,7 @@ import java.util.UUID;
 public class UserService {
     private final UserRepository userRepository;
     private final TripUserRepository tripUserRepository;
+    private final UserMapper userMapper;
 
     public void register(UserEntity user) {
         user.moveToAvailable();
@@ -48,4 +53,10 @@ public class UserService {
 //        Criar lógica para se o usuario quiser sair da viagem mas a viagem ja foi iniciada, colocar ele na lista de faltas
     }
 
+    public List<DriverResponseDTO> listDrivers(CurrentUser currentUser) {
+        return userRepository.findAllDriversByPrefectureId(currentUser.prefectureId())
+                .stream()
+                .map(userMapper::mapToDriver)
+                .toList();
+    }
 }
