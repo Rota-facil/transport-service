@@ -39,6 +39,11 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler
+    public ResponseEntity<Object> driverAlreadyHasBusException(DriverAlreadyHasBusException ex, HttpServletRequest request) {
+        return this.resolveExceptions(HttpStatus.BAD_REQUEST, request, ex);
+    }
+
+    @ExceptionHandler
     public ResponseEntity<Object> institutionNotFoundException(InstitutionNotFoundException ex, HttpServletRequest request) {
         return this.resolveExceptions(HttpStatus.NOT_FOUND, request, ex);
     }

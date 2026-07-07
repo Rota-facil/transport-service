@@ -5,6 +5,7 @@ import com.rota.facil.transport_service.domain.enums.DriverStatus;
 import com.rota.facil.transport_service.domain.enums.Role;
 import com.rota.facil.transport_service.domain.exceptions.BusInOperationExceptions;
 import com.rota.facil.transport_service.domain.exceptions.BusNotFoundException;
+import com.rota.facil.transport_service.domain.exceptions.DriverAlreadyHasBusException;
 import com.rota.facil.transport_service.domain.exceptions.DriverIsOnRouteException;
 import com.rota.facil.transport_service.domain.exceptions.UserNotFoundException;
 import com.rota.facil.transport_service.http.dto.request.user.CurrentUser;
@@ -69,9 +70,7 @@ public class UserService {
         if (busFound.getStatus().equals(BusStatus.OPERATION)) throw new BusInOperationExceptions("Nao é possível trocar ônibus do motorista pois o ônibus está em operação");
 
         if (currentBus != null && !currentBus.getId().equals(request.busId())) {
-            if (currentBus.getStatus().equals(BusStatus.OPERATION)) throw new BusInOperationExceptions("Nao é possível trocar ônibus do motorista pois o ônibus atual está em operação");
-            currentBus.setDriver(null);
-            busRepository.save(currentBus);
+            throw new DriverAlreadyHasBusException();
         }
 
         UserEntity previousDriver = busFound.getDriver();

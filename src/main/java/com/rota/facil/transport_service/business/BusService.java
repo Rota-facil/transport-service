@@ -1,9 +1,8 @@
 package com.rota.facil.transport_service.business;
 
-import com.rota.facil.transport_service.domain.enums.BusStatus;
 import com.rota.facil.transport_service.domain.enums.DriverStatus;
-import com.rota.facil.transport_service.domain.exceptions.BusInOperationExceptions;
 import com.rota.facil.transport_service.domain.exceptions.BusNotFoundException;
+import com.rota.facil.transport_service.domain.exceptions.DriverAlreadyHasBusException;
 import com.rota.facil.transport_service.domain.exceptions.DriverIsOnRouteException;
 import com.rota.facil.transport_service.domain.exceptions.UserNotFoundException;
 import com.rota.facil.transport_service.http.dto.request.bus.CreateBusRequestDTO;
@@ -43,9 +42,7 @@ public class BusService {
                     .orElse(null);
 
             if (oldBus != null) {
-                if (oldBus.getStatus().equals(BusStatus.OPERATION)) throw new BusInOperationExceptions("Nao é possível trocar motorista pois o ônibus atual está em operação");
-                oldBus.setDriver(null);
-                busRepository.save(oldBus);
+                throw new DriverAlreadyHasBusException();
             }
         }
 
