@@ -43,6 +43,9 @@ public class RabbitConfig {
     @Value("${rabbitmq.user.updated.routing.key}")
     private String userUpdatedRoutingKey;
 
+    @Value("${rabbitmq.driver.admin.updated.routing.key}")
+    private String driverAdminUpdatedRoutingKey;
+
     @Value("${rabbitmq.user.deleted.routing.key}")
     private String userDeletedRoutingKey;
 
@@ -188,6 +191,11 @@ public class RabbitConfig {
     @Bean
     public Binding userUpdatedBinding() {
         return BindingBuilder.bind(this.userUpdatedQueue()).to(this.authExchange()).with(userUpdatedRoutingKey);
+    }
+
+    @Bean
+    public Binding driverAdminUpdatedUserBinding() {
+        return BindingBuilder.bind(this.userUpdatedQueue()).to(this.authExchange()).with(driverAdminUpdatedRoutingKey);
     }
 
     @Bean

@@ -9,6 +9,7 @@ import java.util.UUID;
 public record RouteEventSend(
         UUID userId,
         Role role,
+        String userEmail,
         String actionTitle,
         ActionType actionType,
         ResourceName resourceName,

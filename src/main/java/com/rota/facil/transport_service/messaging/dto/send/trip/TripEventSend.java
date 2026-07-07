@@ -10,6 +10,7 @@ import java.util.UUID;
 public record TripEventSend(
         UUID userId,
         Role role,
+        String userEmail,
         String actionTitle,
         ActionType actionType,
         ResourceName resourceName,

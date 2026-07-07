@@ -77,6 +77,7 @@ Exchange `auth.events`:
 
 - `user.created`
 - `user.updated`
+- `driver.admin.updated`
 - `user.deleted`
 - `user.deactivate`
 
