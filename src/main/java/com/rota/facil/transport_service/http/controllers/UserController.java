@@ -20,6 +20,11 @@ import java.util.UUID;
 public class UserController {
     private final UserService userService;
 
+    @GetMapping("/drivers/me")
+    public ResponseEntity<DriverResponseDTO> me(@AuthenticationPrincipal CurrentUser currentUser) {
+        return ResponseEntity.ok(userService.fetchDriver(currentUser));
+    }
+
     @GetMapping("/drivers")
     public ResponseEntity<List<DriverResponseDTO>> listDrivers(@AuthenticationPrincipal CurrentUser currentUser) {
         return ResponseEntity.ok(userService.listDrivers(currentUser));

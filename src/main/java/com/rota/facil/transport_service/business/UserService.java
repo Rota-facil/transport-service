@@ -61,6 +61,10 @@ public class UserService {
         }
     }
 
+    public DriverResponseDTO fetchDriver(CurrentUser currentUser) {
+        return userMapper.mapToDriver(userRepository.findDriverById(currentUser.userId()).orElseThrow(UserNotFoundException::new));
+    }
+
     public void delete(UserEntity userEntity) {
         userRepository.deleteById(userEntity.getId());
     }

@@ -13,6 +13,7 @@ import com.rota.facil.transport_service.persistence.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -24,9 +25,18 @@ public class BusService {
     private final UserRepository userRepository;
     private final BusMapper busMapper;
 
+    @Transactional
     public BusResponseDTO register(CreateBusRequestDTO request, CurrentUser currentUser) {
         UserEntity driverFound = userRepository.findDriverById(request.driverId())
                 .orElseThrow(UserNotFoundException::new);
+
+        BusEntity oldBus = busRepository.findByDriverId(request.driverId())
+                .orElse(null);
+
+        if (oldBus != null) {
+            oldBus.setDriver(null);
+            busRepository.save(oldBus);
+        }
 
         BusEntity preSaved = busMapper.map(request);
 

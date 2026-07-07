@@ -1,11 +1,13 @@
 package com.rota.facil.transport_service.persistence.repositories;
 
 import com.rota.facil.transport_service.persistence.entities.BusEntity;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.lang.ScopedValue;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -30,4 +32,11 @@ public interface BusRepository extends JpaRepository<BusEntity, UUID> {
         WHERE b.prefectureId = :prefectureId
     """)
     List<BusEntity> findAllByPrefectureId(@Param("prefectureId") UUID prefectureId);
+
+    @Query("""
+        SELECT b FROM BusEntity b
+        INNER JOIN b.driver d
+        WHERE d.id = :driverId
+    """)
+    Optional<BusEntity> findByDriverId(@Param("driverId") UUID driverId);
 }
