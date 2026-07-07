@@ -19,6 +19,7 @@ import com.rota.facil.transport_service.persistence.repositories.TripUserReposit
 import com.rota.facil.transport_service.persistence.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -69,7 +70,9 @@ public class UserService {
                 .orElseThrow(UserNotFoundException::new);
     }
 
+    @Transactional
     public void deactivate(UserEntity userEntity) {
+        userRepository.deactivateUserById(userEntity.getId());
         this.removeTravelUser(userEntity);
     }
 

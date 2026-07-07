@@ -48,7 +48,6 @@ public class RabbitAuthEventConsumer {
     public void handlerDeactivateUser(UserEventReceive deactivateUser) {
         try {
             UserEntity userEntity = userEventMapper.map(deactivateUser);
-            userEntity.setActive(false);
             userService.deactivate(userEntity);
         } catch (Exception e) {
             e.printStackTrace();
