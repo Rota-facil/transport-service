@@ -18,6 +18,7 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID> {
         SELECT u FROM UserEntity u
         WHERE u.id = :driverId
         AND u.role IN (com.rota.facil.transport_service.domain.enums.Role.DRIVER)
+        AND u.active IS TRUE
     """)
     Optional<UserEntity> findDriverById(@Param("driverId") UUID driverId);
 
@@ -25,6 +26,7 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID> {
         SELECT COUNT(u) FROM UserEntity u
         WHERE u.prefectureId = :prefectureId
         AND u.role = com.rota.facil.transport_service.domain.enums.Role.STUDENT
+        AND u.active IS TRUE
     """)
     Long countStudentsByPrefectureId(@Param("prefectureId") UUID prefectureId);
 
@@ -32,6 +34,7 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID> {
         SELECT COUNT(u) FROM UserEntity u
         WHERE u.prefectureId = :prefectureId
         AND u.role = com.rota.facil.transport_service.domain.enums.Role.DRIVER
+        AND u.active IS TRUE
     """)
     Long countDriversByPrefectureId(@Param("prefectureId") UUID prefectureId);
 
@@ -39,6 +42,7 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID> {
         SELECT u FROM UserEntity u
         WHERE u.prefectureId = :prefectureId
         AND u.role = com.rota.facil.transport_service.domain.enums.Role.DRIVER
+        AND u.active IS TRUE
     """)
     List<UserEntity> findAllDriversByPrefectureId(@Param("prefectureId") UUID prefectureId);
 
@@ -54,6 +58,7 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID> {
         SELECT u FROM UserEntity u
         WHERE u.id = :driverId
         AND u.prefectureId = :prefectureId
+        AND u.active IS TRUE
     """)
     Optional<UserEntity> findDriverByIdAndPrefectureId(@Param("driverId") UUID driverId, @Param("prefectureId") UUID prefectureId);
 }

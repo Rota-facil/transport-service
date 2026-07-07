@@ -34,7 +34,7 @@ public interface TripStatusRepository extends JpaRepository<TripStatusEntity, UU
         SELECT COUNT(ts) > 0 FROM TripStatusEntity ts
         INNER JOIN ts.trip t
         WHERE t.id = :tripId
-        AND ts.progress = :progress
+        AND ts.progress IN (:progress)
     """)
     boolean existsByTripIdAndProgress(@Param("tripId") UUID tripId, @Param("progress") Progress progress);
 }
