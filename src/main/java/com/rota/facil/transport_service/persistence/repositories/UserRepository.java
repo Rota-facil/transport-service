@@ -65,7 +65,7 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID> {
 
     @Modifying
     @Query("""
-        UPDATE UserEntity U
+        UPDATE UserEntity u
         SET u.active = FALSE
         WHERE u.id = :userId
     """)
