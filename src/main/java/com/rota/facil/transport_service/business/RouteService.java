@@ -42,6 +42,7 @@ public class RouteService {
 
         if (institutionsFound.size() != request.institutionsIds().size()) throw new InstitutionNotFoundException("Erro ao encontrar instituições selecionadas. Selecione apenas instituições existentes");
         if (busListFound.size() != request.busIds().size()) throw new BusNotFoundException("Erro ao encontrar ônibus selecionado. Selecione apenas ônibus existentes");
+        if (busListFound.stream().anyMatch(bus -> bus.getDriver() == null)) throw new BusWithoutDriverException("Não é possível criar rota com ônibus sem motorista vinculado");
 
         RouteEntity preSaved = routeMapper.map(request);
         preSaved.setInstitutions(institutionsFound);

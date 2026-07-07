@@ -6,7 +6,6 @@ import jakarta.validation.constraints.NotNull;
 import java.util.UUID;
 
 public record CreateBusRequestDTO(
-        @NotNull(message = "motorista é obrigatório")
         UUID driverId,
 
         @NotNull(message = "capacidade é obrigatória")

@@ -63,6 +63,8 @@ public class TripService {
         RouteEntity routeFound = routeRepository.findById(request.routeId())
                 .orElseThrow(RouteNotFoundException::new);
 
+        if (busFound.getDriver() == null) throw new BusWithoutDriverException("Não é possível criar viagem com ônibus sem motorista vinculado");
+
         TripEntity preSaved = tripMapper.map(request);
 
         preSaved.setBus(busFound);

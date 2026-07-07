@@ -43,14 +43,41 @@ public class UserService {
         userRepository.save(userFound);
     }
 
+    @Transactional
     public void updateBusOfDriver(UpdateBusOfDriverRequestDTO request, CurrentUser currentUser, UUID driverId) {
         UserEntity driverFound = userRepository.findDriverByIdAndPrefectureId(driverId, currentUser.prefectureId())
                 .orElseThrow(UserNotFoundException::new);
+
+        if (driverFound.getStatus().equals(DriverStatus.ON_ROUTE)) throw new DriverIsOnRouteException("Não é possível trocar ônibus do motorista pois no momento ele está em rota");
+
+        BusEntity currentBus = busRepository.findByDriverId(driverId).orElse(null);
+
+        if (request.busId() == null) {
+            if (currentBus != null) {
+                if (currentBus.getStatus().equals(BusStatus.OPERATION)) throw new BusInOperationExceptions("Nao é possível remover motorista pois o ônibus está em operação");
+                currentBus.setDriver(null);
+                busRepository.save(currentBus);
+            }
+            driverFound.setBus(null);
+            userRepository.save(driverFound);
+            return;
+        }
+
         BusEntity busFound = busRepository.findByIdAndPrefectureId(request.busId(), currentUser.prefectureId())
                 .orElseThrow(BusNotFoundException::new);
 
         if (busFound.getStatus().equals(BusStatus.OPERATION)) throw new BusInOperationExceptions("Nao é possível trocar ônibus do motorista pois o ônibus está em operação");
-        if (driverFound.getStatus().equals(DriverStatus.ON_ROUTE)) throw new DriverIsOnRouteException("Não é possível trocar ônibus do motorista pois no momento ele está em rota");
+
+        if (currentBus != null && !currentBus.getId().equals(request.busId())) {
+            if (currentBus.getStatus().equals(BusStatus.OPERATION)) throw new BusInOperationExceptions("Nao é possível trocar ônibus do motorista pois o ônibus atual está em operação");
+            currentBus.setDriver(null);
+            busRepository.save(currentBus);
+        }
+
+        UserEntity previousDriver = busFound.getDriver();
+        if (previousDriver != null && !previousDriver.getId().equals(driverFound.getId())) {
+            previousDriver.setBus(null);
+        }
 
         if (driverFound.getBus() == null || !driverFound.getBus().getId().equals(request.busId())) {
             busFound.setDriver(driverFound);

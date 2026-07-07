@@ -29,6 +29,11 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler
+    public ResponseEntity<Object> busWithoutDriverException(BusWithoutDriverException ex, HttpServletRequest request) {
+        return this.resolveExceptions(HttpStatus.BAD_REQUEST, request, ex);
+    }
+
+    @ExceptionHandler
     public ResponseEntity<Object> driverIsOnRouteException(DriverIsOnRouteException ex, HttpServletRequest request) {
         return this.resolveExceptions(HttpStatus.BAD_REQUEST, request, ex);
     }

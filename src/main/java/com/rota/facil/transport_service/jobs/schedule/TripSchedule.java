@@ -27,6 +27,8 @@ public class TripSchedule {
         List<TripEntity> tripEntities = new ArrayList<>();
 
         for (RouteRecurringEntity routeRecurring : routeRecurringEntities) {
+            if (routeRecurring.getBus().getDriver() == null) continue;
+
             TripEntity preSavedTrip = TripEntity.builder()
                     .name(routeRecurring.getRoute().getName())
                     .route(routeRecurring.getRoute())

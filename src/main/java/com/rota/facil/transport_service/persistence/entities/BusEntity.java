@@ -24,8 +24,8 @@ public class BusEntity {
 
     private UUID prefectureId;
 
-    @OneToOne
-    @JoinColumn(name = "driver_id")
+    @OneToOne(optional = true)
+    @JoinColumn(name = "driver_id", nullable = true)
     private UserEntity driver;
 
     private Long capacity;

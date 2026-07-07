@@ -1,6 +1,10 @@
 package com.rota.facil.transport_service.business;
 
+import com.rota.facil.transport_service.domain.enums.BusStatus;
+import com.rota.facil.transport_service.domain.enums.DriverStatus;
+import com.rota.facil.transport_service.domain.exceptions.BusInOperationExceptions;
 import com.rota.facil.transport_service.domain.exceptions.BusNotFoundException;
+import com.rota.facil.transport_service.domain.exceptions.DriverIsOnRouteException;
 import com.rota.facil.transport_service.domain.exceptions.UserNotFoundException;
 import com.rota.facil.transport_service.http.dto.request.bus.CreateBusRequestDTO;
 import com.rota.facil.transport_service.http.dto.request.user.CurrentUser;
@@ -27,15 +31,22 @@ public class BusService {
 
     @Transactional
     public BusResponseDTO register(CreateBusRequestDTO request, CurrentUser currentUser) {
-        UserEntity driverFound = userRepository.findDriverById(request.driverId())
-                .orElseThrow(UserNotFoundException::new);
+        UserEntity driverFound = null;
 
-        BusEntity oldBus = busRepository.findByDriverId(request.driverId())
-                .orElse(null);
+        if (request.driverId() != null) {
+            driverFound = userRepository.findDriverByIdAndPrefectureId(request.driverId(), currentUser.prefectureId())
+                    .orElseThrow(UserNotFoundException::new);
 
-        if (oldBus != null) {
-            oldBus.setDriver(null);
-            busRepository.save(oldBus);
+            if (driverFound.getStatus().equals(DriverStatus.ON_ROUTE)) throw new DriverIsOnRouteException("Não é possível vincular motorista pois no momento ele está em rota");
+
+            BusEntity oldBus = busRepository.findByDriverId(request.driverId())
+                    .orElse(null);
+
+            if (oldBus != null) {
+                if (oldBus.getStatus().equals(BusStatus.OPERATION)) throw new BusInOperationExceptions("Nao é possível trocar motorista pois o ônibus atual está em operação");
+                oldBus.setDriver(null);
+                busRepository.save(oldBus);
+            }
         }
 
         BusEntity preSaved = busMapper.map(request);
