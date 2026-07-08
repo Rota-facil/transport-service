@@ -50,6 +50,9 @@ public class RouteEntity {
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    @Builder.Default
+    private Boolean active = true;
+
     @ManyToMany
     @JoinTable(
             name = "routes_institutions_tb",
@@ -58,7 +61,7 @@ public class RouteEntity {
     )
     private Set<InstitutionEntity> institutions;
 
-    @OneToMany(mappedBy = "route", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "route", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<BoardPointRouteEntity> boardPoints;
 
 
@@ -68,11 +71,15 @@ public class RouteEntity {
     @Column(name = "days_of_week")
     private Set<DaysOfWeek> daysOfWeek;
 
-    @OneToMany(mappedBy = "route", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "route", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RouteRecurringEntity> recurring;
 
     @OneToMany(mappedBy = "route")
     private List<TripEntity> trips;
+
+    public void deactivate() {
+        this.active = false;
+    }
 
     public Delay calculateDelay(LocalTime arrivalDate, Progress progress) {
         return this.buildDelay(arrivalDate, this.returnFinish.plusMinutes(5L));

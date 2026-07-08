@@ -5,6 +5,7 @@ import java.util.UUID;
 
 public record RouteBoardPointResponseDTO(
         UUID id,
+        UUID boardPointId,
         String name,
         Double latitude,
         Double longitude,

@@ -11,6 +11,10 @@ import com.rota.facil.transport_service.http.dto.response.route.RouteResponseDTO
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -58,16 +62,33 @@ public class RouteController {
     public ResponseEntity<RouteResponseDTO> updateRoute(
             @PathVariable UUID routeId,
             @AuthenticationPrincipal CurrentUser currentUser,
-            @RequestBody UpdateRouteRequestDTO request
+            @Valid @RequestBody UpdateRouteRequestDTO request
     ) {
        return ResponseEntity.ok(routeService.update(routeId, currentUser, request));
     }
 
-    @GetMapping
-    public ResponseEntity<List<RouteResponseDTO>> listRoutes(
+    @DeleteMapping("/{routeId}")
+    public ResponseEntity<Void> deleteRoute(
+            @PathVariable UUID routeId,
             @AuthenticationPrincipal CurrentUser currentUser
     ) {
-        return ResponseEntity.ok(routeService.list(currentUser));
+        routeService.delete(routeId, currentUser);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/simple")
+    public ResponseEntity<List<RouteResponseDTO>> listSimpleRoutes(
+            @AuthenticationPrincipal CurrentUser currentUser
+    ) {
+        return ResponseEntity.ok(routeService.listSimple(currentUser));
+    }
+
+    @GetMapping
+    public ResponseEntity<Page<RouteResponseDTO>> listRoutes(
+            @ParameterObject @PageableDefault Pageable pageable,
+            @AuthenticationPrincipal CurrentUser currentUser
+    ) {
+        return ResponseEntity.ok(routeService.list(currentUser, pageable));
     }
 
 }

@@ -13,6 +13,8 @@ import com.rota.facil.transport_service.persistence.entities.*;
 import com.rota.facil.transport_service.persistence.mappers.RouteMapper;
 import com.rota.facil.transport_service.persistence.repositories.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,9 +36,14 @@ public class RouteService {
     private final RouteMapper routeMapper;
     private final IntelligenceMapper intelligenceMapper;
     private final TripUserRepository tripUserRepository;
+    private final RouteRecurringRepository routeRecurringRepository;
 
     @Transactional
     public RouteResponseDTO register(CreateRouteRequestDTO request, CurrentUser currentUser) {
+        if (request.busIds().isEmpty()) {
+            throw new BusNotFoundException("Selecione pelo menos um ônibus para a recorrência da rota");
+        }
+
         Set<InstitutionEntity> institutionsFound = institutionRepository.findAllSetById(request.institutionsIds());
         List<BusEntity> busListFound = busRepository.findAllActiveByIdInAndPrefectureId(request.busIds(), currentUser.prefectureId());
 
@@ -130,7 +137,12 @@ public class RouteService {
         return routeMapper.map(this.fetchEntity(routeId, currentUser.prefectureId()));
     }
 
-    public List<RouteResponseDTO> list(CurrentUser currentUser) {
+    public Page<RouteResponseDTO> list(CurrentUser currentUser, Pageable pageable) {
+        return routeRepository.findAllByPrefectureId(currentUser.prefectureId(), pageable)
+                .map(routeMapper::map);
+    }
+
+    public List<RouteResponseDTO> listSimple(CurrentUser currentUser) {
         return routeRepository.findAllByPrefectureId(currentUser.prefectureId())
                 .stream()
                 .map(routeMapper::map)
@@ -206,6 +218,7 @@ public class RouteService {
         return intelligenceHttpClient.generateRouteHeatMap(routeMapper.map(routeFound.getId(), points, currentUser));
     }
 
+    @Transactional
     public RouteResponseDTO update(UUID routeId, CurrentUser currentUser, UpdateRouteRequestDTO request) {
         RouteEntity routeFound = this.fetchEntity(routeId, currentUser.prefectureId());
 
@@ -221,8 +234,86 @@ public class RouteService {
         this.updateInstitution(routeFound, request.institutionsIds().stream().toList());
         this.updateDaysOfWeek(routeFound, request.daysOfWeek());
         this.updateBoardPoints(routeFound, request.boardPoints());
+        this.updateRecurringBus(routeFound, request.busIds(), currentUser);
 
         return routeMapper.map(routeRepository.save(routeFound));
+    }
+
+    @Transactional
+    public void delete(UUID routeId, CurrentUser currentUser) {
+        RouteEntity routeFound = routeRepository.findAnyByIdAndPrefectureId(routeId, currentUser.prefectureId())
+                .orElseThrow(RouteNotFoundException::new);
+
+        if (Boolean.FALSE.equals(routeFound.getActive())) {
+            throw new RouteNotFoundException();
+        }
+
+        if (routeRepository.countTripsStartedById(routeId) > 0) {
+            throw new NotAllowedToUpdateRouteException("Não é permitido deletar rota porque ainda existem viagens em andamento nessa rota atual");
+        }
+
+        routeRecurringRepository.deleteAllByRoute_Id(routeFound.getId());
+        if (routeFound.getRecurring() != null) {
+            routeFound.getRecurring().clear();
+        }
+        routeFound.deactivate();
+        routeRepository.save(routeFound);
+    }
+
+
+    private void updateRecurringBus(RouteEntity route, List<UUID> requestedIds, CurrentUser currentUser) {
+        List<RouteRecurringEntity> currentRecurring = route.getRecurring();
+
+        if (currentRecurring == null) {
+            currentRecurring = new ArrayList<>();
+            route.setRecurring(currentRecurring);
+        }
+
+        List<RouteRecurringEntity> recurring = currentRecurring;
+
+        Set<UUID> requestedIdSet = new HashSet<>(requestedIds);
+
+        if (requestedIdSet.isEmpty()) {
+            throw new BusNotFoundException("Selecione pelo menos um ônibus para a recorrência da rota");
+        }
+
+        List<BusEntity> requestedBus = busRepository.findAllActiveByIdInAndPrefectureId(requestedIds, currentUser.prefectureId());
+
+        if (requestedBus.size() != requestedIdSet.size()) {
+            throw new BusNotFoundException("Erro ao encontrar ônibus selecionado. Selecione apenas ônibus existentes");
+        }
+
+        if (requestedBus.stream().anyMatch(bus -> bus.getDriver() == null)) {
+            throw new BusWithoutDriverException("Não é possível criar rota com ônibus sem motorista vinculado");
+        }
+
+        Set<UUID> currentIds = recurring.stream()
+                .map(RouteRecurringEntity::getBus)
+                .filter(Objects::nonNull)
+                .map(BusEntity::getId)
+                .collect(Collectors.toSet());
+
+        Set<UUID> idsToRemove = currentIds.stream()
+                .filter(id -> !requestedIdSet.contains(id))
+                .collect(Collectors.toSet());
+
+        Set<UUID> idsToAdd = requestedIdSet.stream()
+                .filter(id -> !currentIds.contains(id))
+                .collect(Collectors.toSet());
+
+        recurring.removeIf(routeRecurring ->
+                routeRecurring.getBus() != null && idsToRemove.contains(routeRecurring.getBus().getId())
+        );
+
+        Map<UUID, BusEntity> requestedBusById = requestedBus.stream()
+                .collect(Collectors.toMap(BusEntity::getId, Function.identity()));
+
+        idsToAdd.forEach(id -> recurring.add(
+                RouteRecurringEntity.builder()
+                        .route(route)
+                        .bus(requestedBusById.get(id))
+                        .build()
+        ));
     }
 
     private void updateInstitution(RouteEntity route, List<UUID> requestedIds) {

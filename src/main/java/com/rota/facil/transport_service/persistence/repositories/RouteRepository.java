@@ -3,6 +3,8 @@ package com.rota.facil.transport_service.persistence.repositories;
 import com.rota.facil.transport_service.persistence.entities.BoardPointEntity;
 import com.rota.facil.transport_service.persistence.entities.InstitutionEntity;
 import com.rota.facil.transport_service.persistence.entities.RouteEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -47,15 +49,32 @@ public interface RouteRepository extends JpaRepository<RouteEntity, UUID> {
         SELECT r FROM RouteEntity r
         WHERE r.id = :routeId
         AND r.prefectureId = :prefectureId
+        AND r.active = true
     """)
     Optional<RouteEntity> findByIdAndPrefectureId(@Param("routeId") UUID routeId, @Param("prefectureId") UUID prefectureId);
 
     @Query("""
         SELECT r FROM RouteEntity r
+        WHERE r.id = :routeId
+        AND r.prefectureId = :prefectureId
+    """)
+    Optional<RouteEntity> findAnyByIdAndPrefectureId(@Param("routeId") UUID routeId, @Param("prefectureId") UUID prefectureId);
+
+    @Query("""
+        SELECT r FROM RouteEntity r
         WHERE r.prefectureId = :prefectureId
+        AND r.active = true
         ORDER BY r.createdAt DESC
     """)
     List<RouteEntity> findAllByPrefectureId(@Param("prefectureId") UUID prefectureId);
+
+    @Query("""
+        SELECT r FROM RouteEntity r
+        WHERE r.prefectureId = :prefectureId
+        AND r.active = true
+        ORDER BY r.createdAt DESC
+    """)
+    Page<RouteEntity> findAllByPrefectureId(@Param("prefectureId") UUID prefectureId, Pageable pageable);
 
     @Query("""
         SELECT i FROM RouteEntity r
@@ -77,6 +96,7 @@ public interface RouteRepository extends JpaRepository<RouteEntity, UUID> {
     @Query("""
         SELECT COUNT(r) FROM RouteEntity r
         WHERE r.prefectureId = :prefectureId
+        AND r.active = true
     """)
     Long countByPrefectureId(@Param("prefectureId") UUID prefectureId);
 

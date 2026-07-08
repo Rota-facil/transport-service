@@ -21,6 +21,7 @@ public record RouteResponseDTO(
         LocalDateTime createdAt,
         List<DaysOfWeek> daysOfWeek,
         Set<RouteInstitutionResponseDTO> institutions,
-        List<RouteBoardPointResponseDTO> boardPoints
+        List<RouteBoardPointResponseDTO> boardPoints,
+        List<RouteBusResponseDTO> bus
 ) {
 }

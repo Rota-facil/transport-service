@@ -16,9 +16,11 @@ public interface RouteRecurringRepository extends JpaRepository<RouteRecurringEn
         SELECT rr FROM RouteRecurringEntity rr
         INNER JOIN rr.route r
         WHERE :daysOfWeek MEMBER OF r.daysOfWeek
+        AND r.active = true
     """)
     List<RouteRecurringEntity> findAllRouteRecurringToday(@Param("daysOfWeek") DaysOfWeek daysOfWeek);
 
+    void deleteAllByRoute_Id(UUID routeId);
 
     void deleteAllByBus_Id(UUID busId);
 }
