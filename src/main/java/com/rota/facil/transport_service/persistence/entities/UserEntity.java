@@ -41,6 +41,9 @@ public class UserEntity {
     @Column(name = "completed_trips")
     private Long completedTrips = 0L;
 
+    @Builder.Default
+    private Long trips = 0L;
+
     @Enumerated(EnumType.STRING)
     private Role role;
 

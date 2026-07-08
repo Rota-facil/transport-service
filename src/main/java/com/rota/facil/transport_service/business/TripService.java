@@ -134,6 +134,9 @@ public class TripService {
                         .build()
         );
 
+        List<UUID> userIds = List.of(userFound.getId());
+        userRepository.increaseTripsByUserIds(userIds);
+        transportUserEventProducer.increaseTripsUser(userIds);
 
         return tripUserMapper.map(saved);
     }
@@ -166,6 +169,10 @@ public class TripService {
 
         driverFound.moveToOnRoute();
         driverFound = userRepository.save(driverFound);
+
+        List<UUID> driverIds = List.of(driverFound.getId());
+        userRepository.increaseTripsByUserIds(driverIds);
+        transportUserEventProducer.increaseTripsUser(driverIds);
 
         BusEntity bus = tripFound.getBus();
         bus.moveToOperation();
@@ -353,16 +360,20 @@ public class TripService {
         return null;
     }
 
+    @Transactional
     public void exitTrip(UUID tripId, CurrentUser currentUser) {
         TripEntity tripFound = this.fetchEntity(tripId, currentUser.prefectureId());
-
-        tripFound.decreaseStudents();
-        tripRepository.save(tripFound);
 
         TripUserEntity tripUserFound = tripUserRepository.findNotStartedAndNotFinishedByTripIdAndUserId(tripId, currentUser.userId())
                 .orElseThrow(TripUserNotFoundException::new);
 
+        tripFound.decreaseStudents();
+        tripRepository.save(tripFound);
         tripUserRepository.delete(tripUserFound);
+
+        List<UUID> userIds = List.of(currentUser.userId());
+        userRepository.decreaseTripsByUserIds(userIds);
+        transportUserEventProducer.decreaseTripsUser(userIds);
     }
 
     private void setAbsences(TripEntity trip, Progress tripProgress) {

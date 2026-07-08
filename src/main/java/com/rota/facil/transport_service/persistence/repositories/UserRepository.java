@@ -55,6 +55,24 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID> {
     """)
     void increaseTripCompletedByUserIds(@Param("userIds") List<UUID> userIds);
 
+    @Modifying
+    @Query("""
+        UPDATE UserEntity u
+        SET u.trips = u.trips + 1
+        WHERE u.id IN (:userIds)
+        AND u.active IS TRUE
+    """)
+    void increaseTripsByUserIds(@Param("userIds") List<UUID> userIds);
+
+    @Modifying
+    @Query("""
+        UPDATE UserEntity u
+        SET u.trips = CASE WHEN u.trips > 0 THEN u.trips - 1 ELSE 0 END
+        WHERE u.id IN (:userIds)
+        AND u.active IS TRUE
+    """)
+    void decreaseTripsByUserIds(@Param("userIds") List<UUID> userIds);
+
     @Query("""
         SELECT u FROM UserEntity u
         WHERE u.id = :driverId

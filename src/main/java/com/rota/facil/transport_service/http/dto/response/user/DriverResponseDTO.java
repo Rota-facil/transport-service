@@ -15,6 +15,7 @@ public record DriverResponseDTO(
         Boolean active,
         DriverBusResponseDTO bus,
         Long completedTrips,
+        Long trips,
         DriverStatus status,
         Role role
 ) {
