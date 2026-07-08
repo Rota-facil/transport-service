@@ -1,5 +1,6 @@
 package com.rota.facil.transport_service.persistence.repositories;
 
+import com.rota.facil.transport_service.http.dto.response.institution.InstitutionRouteCountResponseDTO;
 import com.rota.facil.transport_service.persistence.entities.InstitutionEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -45,4 +46,18 @@ public interface InstitutionRepository extends JpaRepository<InstitutionEntity, 
         AND i.deleted = false
     """)
     List<InstitutionEntity> findAllActiveByIdIn(@Param("ids") Iterable<UUID> ids);
+
+    @Query("""
+        SELECT new com.rota.facil.transport_service.http.dto.response.institution.InstitutionRouteCountResponseDTO(
+            i.id,
+            COUNT(DISTINCT r.id)
+        )
+        FROM InstitutionEntity i
+        LEFT JOIN i.routes r
+            ON r.active = true
+            AND r.prefectureId = :prefectureId
+        WHERE i.deleted = false
+        GROUP BY i.id
+    """)
+    List<InstitutionRouteCountResponseDTO> countRoutesByInstitution(@Param("prefectureId") UUID prefectureId);
 }

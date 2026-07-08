@@ -1,11 +1,14 @@
 package com.rota.facil.transport_service.business;
 
 import com.rota.facil.transport_service.domain.exceptions.InstitutionNotFoundException;
+import com.rota.facil.transport_service.http.dto.request.user.CurrentUser;
+import com.rota.facil.transport_service.http.dto.response.institution.InstitutionRouteCountResponseDTO;
 import com.rota.facil.transport_service.persistence.entities.InstitutionEntity;
 import com.rota.facil.transport_service.persistence.repositories.InstitutionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -30,6 +33,10 @@ public class InstitutionService {
         InstitutionEntity institutionFound = this.fetchEntity(institutionEntity.getId());
         institutionFound.markAsDeleted();
         institutionRepository.save(institutionFound);
+    }
+
+    public List<InstitutionRouteCountResponseDTO> listRouteCounts(CurrentUser currentUser) {
+        return institutionRepository.countRoutesByInstitution(currentUser.prefectureId());
     }
 
     private InstitutionEntity fetchEntity(UUID institutionId) {
