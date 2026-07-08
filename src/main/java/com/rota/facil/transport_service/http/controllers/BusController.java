@@ -2,7 +2,7 @@ package com.rota.facil.transport_service.http.controllers;
 
 import com.rota.facil.transport_service.business.BusService;
 import com.rota.facil.transport_service.http.dto.request.bus.CreateBusRequestDTO;
-import com.rota.facil.transport_service.http.dto.request.bus.UpdateDriverOfBusRequestDTO;
+import com.rota.facil.transport_service.http.dto.request.bus.UpdateBusRequestDTO;
 import com.rota.facil.transport_service.http.dto.request.user.CurrentUser;
 import com.rota.facil.transport_service.http.dto.response.bus.BusResponseDTO;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -38,13 +38,13 @@ public class BusController {
         return ResponseEntity.ok(busService.fetch(busId, currentUser));
     }
 
-    @PatchMapping("/{busId}/driver/change")
-    public ResponseEntity<BusResponseDTO> updateDriverOfBus(
+    @PutMapping("/{busId}")
+    public ResponseEntity<BusResponseDTO> updateBus(
             @PathVariable UUID busId,
-            @RequestBody UpdateDriverOfBusRequestDTO request,
+            @Valid @RequestBody UpdateBusRequestDTO request,
             @AuthenticationPrincipal CurrentUser currentUser
     ) {
-        return ResponseEntity.ok(busService.updateDriver(busId, request, currentUser));
+        return ResponseEntity.ok(busService.update(busId, request, currentUser));
     }
 
     @GetMapping

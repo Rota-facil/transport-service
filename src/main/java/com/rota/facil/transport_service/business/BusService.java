@@ -8,7 +8,7 @@ import com.rota.facil.transport_service.domain.exceptions.DriverAlreadyHasBusExc
 import com.rota.facil.transport_service.domain.exceptions.DriverIsOnRouteException;
 import com.rota.facil.transport_service.domain.exceptions.UserNotFoundException;
 import com.rota.facil.transport_service.http.dto.request.bus.CreateBusRequestDTO;
-import com.rota.facil.transport_service.http.dto.request.bus.UpdateDriverOfBusRequestDTO;
+import com.rota.facil.transport_service.http.dto.request.bus.UpdateBusRequestDTO;
 import com.rota.facil.transport_service.http.dto.request.user.CurrentUser;
 import com.rota.facil.transport_service.http.dto.response.bus.BusResponseDTO;
 import com.rota.facil.transport_service.persistence.entities.BusEntity;
@@ -58,39 +58,63 @@ public class BusService {
     }
 
     @Transactional
-    public BusResponseDTO updateDriver(UUID busId, UpdateDriverOfBusRequestDTO request, CurrentUser currentUser) {
+    public BusResponseDTO update(UUID busId, UpdateBusRequestDTO request, CurrentUser currentUser) {
         BusEntity busFound = this.fetchEntityByPrefectureId(busId, currentUser.prefectureId());
+
+        if (request.plate() != null) {
+            busFound.setPlate(request.plate());
+        }
+        if (request.capacity() != null) {
+            busFound.setCapacity(request.capacity());
+        }
+        if (request.status() != null) {
+            busFound.setStatus(request.status());
+        }
+
+        updateBusDriver(busFound, request.driverId(), currentUser);
+
+        return busMapper.map(busRepository.save(busFound));
+    }
+
+    private void updateBusDriver(BusEntity busFound, UUID driverId, CurrentUser currentUser) {
+        UUID currentDriverId = busFound.getDriver() != null ? busFound.getDriver().getId() : null;
+
+        if (currentDriverId == null && driverId == null) {
+            return;
+        }
+
+        if (currentDriverId != null && currentDriverId.equals(driverId)) {
+            return;
+        }
 
         if (busFound.getStatus().equals(BusStatus.OPERATION)) throw new BusInOperationExceptions("Nao é possível alterar motorista pois o ônibus está em operação");
 
         UserEntity currentDriver = busFound.getDriver();
 
-        if (request.driverId() == null) {
+        if (driverId == null) {
             if (currentDriver != null) {
                 currentDriver.setBus(null);
             }
             busFound.setDriver(null);
-            return busMapper.map(busRepository.save(busFound));
+            return;
         }
 
-        UserEntity driverFound = userRepository.findDriverByIdAndPrefectureId(request.driverId(), currentUser.prefectureId())
+        UserEntity driverFound = userRepository.findDriverByIdAndPrefectureId(driverId, currentUser.prefectureId())
                 .orElseThrow(UserNotFoundException::new);
 
         if (driverFound.getStatus().equals(DriverStatus.ON_ROUTE)) throw new DriverIsOnRouteException("Não é possível vincular motorista pois no momento ele está em rota");
 
-        BusEntity driverCurrentBus = busRepository.findByDriverId(request.driverId()).orElse(null);
-        if (driverCurrentBus != null && !driverCurrentBus.getId().equals(busId)) {
+        BusEntity driverCurrentBus = busRepository.findByDriverId(driverId).orElse(null);
+        if (driverCurrentBus != null && !driverCurrentBus.getId().equals(busFound.getId())) {
             throw new DriverAlreadyHasBusException();
         }
 
-        if (currentDriver != null && !currentDriver.getId().equals(driverFound.getId())) {
+        if (currentDriver != null) {
             currentDriver.setBus(null);
         }
 
         busFound.setDriver(driverFound);
         driverFound.setBus(busFound);
-
-        return busMapper.map(busRepository.save(busFound));
     }
 
     public BusResponseDTO fetch(UUID busId, CurrentUser currentUser) {
