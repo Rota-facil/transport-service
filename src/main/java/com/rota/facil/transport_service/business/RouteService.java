@@ -38,7 +38,7 @@ public class RouteService {
     @Transactional
     public RouteResponseDTO register(CreateRouteRequestDTO request, CurrentUser currentUser) {
         Set<InstitutionEntity> institutionsFound = institutionRepository.findAllSetById(request.institutionsIds());
-        List<BusEntity> busListFound = busRepository.findAllById(request.busIds());
+        List<BusEntity> busListFound = busRepository.findAllActiveByIdInAndPrefectureId(request.busIds(), currentUser.prefectureId());
 
         if (institutionsFound.size() != request.institutionsIds().size()) throw new InstitutionNotFoundException("Erro ao encontrar instituições selecionadas. Selecione apenas instituições existentes");
         if (busListFound.size() != request.busIds().size()) throw new BusNotFoundException("Erro ao encontrar ônibus selecionado. Selecione apenas ônibus existentes");

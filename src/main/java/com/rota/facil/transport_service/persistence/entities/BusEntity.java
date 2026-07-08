@@ -33,6 +33,9 @@ public class BusEntity {
     private String plate;
 
     @Builder.Default
+    private Boolean active = true;
+
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     private BusStatus status = BusStatus.OUT_OF_OPERATION;
 
@@ -59,5 +62,9 @@ public class BusEntity {
 
     public void moveToOutOfOperation() {
         this.status = BusStatus.OUT_OF_OPERATION;
+    }
+
+    public void deactivate() {
+        this.active = false;
     }
 }

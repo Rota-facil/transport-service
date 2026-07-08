@@ -11,13 +11,14 @@ import com.rota.facil.transport_service.http.dto.request.bus.CreateBusRequestDTO
 import com.rota.facil.transport_service.http.dto.request.bus.UpdateBusRequestDTO;
 import com.rota.facil.transport_service.http.dto.request.user.CurrentUser;
 import com.rota.facil.transport_service.http.dto.response.bus.BusResponseDTO;
+import com.rota.facil.transport_service.messaging.producers.RabbitTransportBusEventProducer;
 import com.rota.facil.transport_service.persistence.entities.BusEntity;
 import com.rota.facil.transport_service.persistence.entities.UserEntity;
 import com.rota.facil.transport_service.persistence.mappers.BusMapper;
 import com.rota.facil.transport_service.persistence.repositories.BusRepository;
+import com.rota.facil.transport_service.persistence.repositories.RouteRecurringRepository;
 import com.rota.facil.transport_service.persistence.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +30,8 @@ import java.util.UUID;
 public class BusService {
     private final BusRepository busRepository;
     private final UserRepository userRepository;
+    private final RouteRecurringRepository routeRecurringRepository;
+    private final RabbitTransportBusEventProducer busEventProducer;
     private final BusMapper busMapper;
 
     @Transactional
@@ -119,6 +122,25 @@ public class BusService {
 
     public BusResponseDTO fetch(UUID busId, CurrentUser currentUser) {
         return busMapper.map(this.fetchEntityByPrefectureId(busId, currentUser.prefectureId()));
+    }
+
+    @Transactional
+    public void delete(UUID busId, CurrentUser currentUser) {
+        BusEntity busFound = busRepository.findAnyByIdAndPrefectureId(busId, currentUser.prefectureId())
+                .orElseThrow(BusNotFoundException::new);
+
+        if (busFound.getStatus().equals(BusStatus.OPERATION)) throw new BusInOperationExceptions("Nao é possível deletar ônibus pois ele está em operação");
+
+        UserEntity driver = busFound.getDriver();
+        if (driver != null) {
+            driver.setBus(null);
+            busFound.setDriver(null);
+        }
+
+        routeRecurringRepository.deleteAllByBus_Id(busFound.getId());
+        busFound.deactivate();
+        BusEntity deletedBus = busRepository.save(busFound);
+        busEventProducer.deleteBusEvent(deletedBus);
     }
 
     public List<BusResponseDTO> list(CurrentUser currentUser) {

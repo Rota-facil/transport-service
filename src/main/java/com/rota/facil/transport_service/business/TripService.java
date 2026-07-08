@@ -56,8 +56,8 @@ public class TripService {
     private final UserRepository userRepository;
 
     @Transactional
-    public TripResponseDTO register(CreateTripRequestDTO request) {
-        BusEntity busFound = busRepository.findById(request.busId())
+    public TripResponseDTO register(CreateTripRequestDTO request, CurrentUser currentUser) {
+        BusEntity busFound = busRepository.findByIdAndPrefectureId(request.busId(), currentUser.prefectureId())
                 .orElseThrow(BusNotFoundException::new);
 
         RouteEntity routeFound = routeRepository.findById(request.routeId())

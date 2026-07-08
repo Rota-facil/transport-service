@@ -47,6 +47,15 @@ public class BusController {
         return ResponseEntity.ok(busService.update(busId, request, currentUser));
     }
 
+    @DeleteMapping("/{busId}")
+    public ResponseEntity<Void> deleteBus(
+            @PathVariable UUID busId,
+            @AuthenticationPrincipal CurrentUser currentUser
+    ) {
+        busService.delete(busId, currentUser);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping
     public ResponseEntity<List<BusResponseDTO>> listBus(@AuthenticationPrincipal CurrentUser currentUser) {
         return ResponseEntity.ok(busService.list(currentUser));

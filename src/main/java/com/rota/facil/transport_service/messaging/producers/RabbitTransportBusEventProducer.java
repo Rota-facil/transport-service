@@ -17,11 +17,11 @@ public class RabbitTransportBusEventProducer {
     @Value("${rabbitmq.transport.exchange}")
     private String transportExchange;
 
-    @Value("${rabbitmq.bus.deleted.routing.key")
+    @Value("${rabbitmq.bus.deleted.routing.key}")
     private String busDeletedRoutingKey;
 
     public void deleteBusEvent(BusEntity deleteBus) {
         BusEventSend busEventSend = busEventMapper.map(deleteBus);
-        rabbitTemplate.convertAndSend(transportExchange, busDeletedRoutingKey, busEventMapper);
+        rabbitTemplate.convertAndSend(transportExchange, busDeletedRoutingKey, busEventSend);
     }
 }
