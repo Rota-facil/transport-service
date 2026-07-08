@@ -100,9 +100,9 @@ public interface TripRepository extends JpaRepository<TripEntity, UUID> {
     @Query("""
         SELECT COUNT(t) FROM TripEntity t
         INNER JOIN t.route r
-        INNER JOIN t.tripStatus ts
         WHERE r.prefectureId = :prefectureId
-        AND ts.progress = com.rota.facil.transport_service.domain.enums.Progress.CANCELLED
+        AND t.createdAt = CURRENT_DATE
+        AND t.actualStatus = com.rota.facil.transport_service.domain.enums.Progress.CANCELLED
     """)
     Long countCancelledByPrefectureId(@Param("prefectureId") UUID prefectureId);
 
@@ -110,10 +110,13 @@ public interface TripRepository extends JpaRepository<TripEntity, UUID> {
     SELECT COUNT(t)
     FROM TripEntity t
     INNER JOIN t.route r
-    INNER JOIN t.tripStatus ts
     WHERE r.prefectureId = :prefectureId
     AND t.createdAt = CURRENT_DATE
-    AND ts.progress = com.rota.facil.transport_service.domain.enums.Progress.STARTED
+    AND t.actualStatus NOT IN (
+        com.rota.facil.transport_service.domain.enums.Progress.NOT_STARTED,
+        com.rota.facil.transport_service.domain.enums.Progress.CANCELLED,
+        com.rota.facil.transport_service.domain.enums.Progress.RETURN_FINISHED
+    )
 """)
     Long countStartedTodayByPrefectureId(@Param("prefectureId") UUID prefectureId);
 
@@ -138,4 +141,39 @@ public interface TripRepository extends JpaRepository<TripEntity, UUID> {
         AND ts.progress = com.rota.facil.transport_service.domain.enums.Progress.STARTED
     """)
     Long countStudentsServedByPrefectureId(@Param("prefectureId") UUID prefectureId);
+    @Query("""
+        SELECT COUNT(t)
+        FROM TripEntity t
+        INNER JOIN t.route r
+        WHERE r.prefectureId = :prefectureId
+        AND t.createdAt = CURRENT_DATE
+        AND t.actualStatus NOT IN (
+            com.rota.facil.transport_service.domain.enums.Progress.NOT_STARTED,
+            com.rota.facil.transport_service.domain.enums.Progress.CANCELLED,
+            com.rota.facil.transport_service.domain.enums.Progress.RETURN_FINISHED
+        )
+    """)
+    Long countInRouteTodayByPrefectureId(@Param("prefectureId") UUID prefectureId);
+
+    @Query("""
+        SELECT COUNT(t)
+        FROM TripEntity t
+        INNER JOIN t.route r
+        WHERE r.prefectureId = :prefectureId
+        AND t.createdAt = CURRENT_DATE
+        AND t.actualStatus = com.rota.facil.transport_service.domain.enums.Progress.RETURN_FINISHED
+    """)
+    Long countFinishedTodayByPrefectureId(@Param("prefectureId") UUID prefectureId);
+
+    @Query("""
+        SELECT COUNT(t)
+        FROM TripEntity t
+        INNER JOIN t.route r
+        WHERE r.prefectureId = :prefectureId
+        AND t.createdAt = CURRENT_DATE
+        AND t.actualStatus = com.rota.facil.transport_service.domain.enums.Progress.NOT_STARTED
+    """)
+    Long countWaitingTodayByPrefectureId(@Param("prefectureId") UUID prefectureId);
+
 }
+

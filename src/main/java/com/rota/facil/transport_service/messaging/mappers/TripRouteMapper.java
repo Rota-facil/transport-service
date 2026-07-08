@@ -26,7 +26,7 @@ public class TripRouteMapper {
         List<TripRouteInstitutionResponseDTO> institutionsToBeVisited = this.fetchInstitutionsToBeVisited(trip);
         List<TripRouteBoardPointResponseDTO> boardPointsToBeVisited = this.fetchBoardPointsToBeVisited(trip);
 
-        return new TripRouteResponseDTO(route.getId(), route.getShift(), route.getGoing(), route.getReturn_(), route.getGoingFinish(), route.getReturnFinish(), institutionsToBeVisited, boardPointsToBeVisited);
+        return new TripRouteResponseDTO(route.getId(), route.getName(), route.getShift(), route.getGoing(), route.getReturn_(), route.getGoingFinish(), route.getReturnFinish(), institutionsToBeVisited, boardPointsToBeVisited);
     }
 
     @Named(value = "fetchInstitutionsToBeVisited")

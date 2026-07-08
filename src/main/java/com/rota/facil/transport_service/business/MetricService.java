@@ -21,6 +21,9 @@ public class MetricService {
         Long activeRoutes = routeRepository.countByPrefectureId(currentUser.prefectureId());
         Long tripsToday = tripRepository.countTodayByPrefectureId(currentUser.prefectureId());
         Long cancelledTrips = tripRepository.countCancelledByPrefectureId(currentUser.prefectureId());
+        Long tripsInRoute = tripRepository.countInRouteTodayByPrefectureId(currentUser.prefectureId());
+        Long tripsFinishedToday = tripRepository.countFinishedTodayByPrefectureId(currentUser.prefectureId());
+        Long tripsWaiting = tripRepository.countWaitingTodayByPrefectureId(currentUser.prefectureId());
 
         Long students = userRepository.countStudentsByPrefectureId(currentUser.prefectureId());
         Long drivers = userRepository.countDriversByPrefectureId(currentUser.prefectureId());
@@ -45,7 +48,11 @@ public class MetricService {
                 bus,
                 totalTripsStarted,
                 percentPointTrips,
-                studentsServed == null ? 0L : studentsServed
+                studentsServed == null ? 0L : studentsServed,
+                tripsInRoute,
+                tripsFinishedToday,
+                cancelledTrips,
+                tripsWaiting
         );
     }
 }

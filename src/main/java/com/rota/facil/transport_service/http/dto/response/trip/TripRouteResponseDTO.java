@@ -8,6 +8,7 @@ import java.util.UUID;
 
 public record TripRouteResponseDTO(
         UUID id,
+        String name,
         Shift shift,
         LocalTime going,
         LocalTime return_,
