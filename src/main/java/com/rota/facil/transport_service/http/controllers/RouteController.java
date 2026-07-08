@@ -38,8 +38,19 @@ public class RouteController {
     }
 
     @PostMapping("/{routeId}/interpreter")
-    public ResponseEntity<RouteInterpretationResponseDTO> interpreterRoute(@PathVariable UUID routeId) {
-        return ResponseEntity.ok(routeService.interpreterRoute(routeId));
+    public ResponseEntity<RouteInterpretationResponseDTO> interpreterRoute(
+            @PathVariable UUID routeId,
+            @AuthenticationPrincipal CurrentUser currentUser
+    ) {
+        return ResponseEntity.ok(routeService.interpreterRoute(routeId, currentUser));
+    }
+
+    @GetMapping("/{routeId}/interpretations")
+    public ResponseEntity<List<RouteInterpretationResponseDTO>> listInterpretations(
+            @PathVariable UUID routeId,
+            @AuthenticationPrincipal CurrentUser currentUser
+    ) {
+        return ResponseEntity.ok(routeService.listInterpretations(routeId, currentUser));
     }
 
     @GetMapping("/{routeId}")

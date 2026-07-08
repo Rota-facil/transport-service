@@ -37,6 +37,7 @@ public class RouteService {
     private final IntelligenceMapper intelligenceMapper;
     private final TripUserRepository tripUserRepository;
     private final RouteRecurringRepository routeRecurringRepository;
+    private final RouteInterpretationRepository routeInterpretationRepository;
 
     @Transactional
     public RouteResponseDTO register(CreateRouteRequestDTO request, CurrentUser currentUser) {
@@ -149,17 +150,42 @@ public class RouteService {
                 .toList();
     }
 
-    public RouteInterpretationResponseDTO interpreterRoute(UUID routeId) {
-        RouteEntity routeFoud = this.fetchEntity(routeId);
+    @Transactional
+    public RouteInterpretationResponseDTO interpreterRoute(UUID routeId, CurrentUser currentUser) {
+        RouteEntity routeFound = this.fetchEntity(routeId, currentUser.prefectureId());
         List<TripEntity> tripsFound = tripRepository.findAllFinishedByRouteId(routeId);
 
         if (tripsFound.isEmpty()) throw new TripNotFoundException("Esssa rota ainda não tem viagens finalizadas para poder gerar interpretação");
 
-        RouteInterpretationResponseDTO interpretationResponse = intelligenceHttpClient.generateRouteInterpretation(intelligenceMapper.map(routeFoud, tripsFound));
+        RouteInterpretationResponseDTO intelligenceResponse = intelligenceHttpClient.generateRouteInterpretation(intelligenceMapper.map(routeFound, tripsFound));
 
-        routeFoud.setInterpretation(interpretationResponse.routeInterpretation());
-        routeRepository.save(routeFoud);
-        return interpretationResponse;
+        RouteInterpretationEntity savedInterpretation = routeInterpretationRepository.save(
+                RouteInterpretationEntity.builder()
+                        .route(routeFound)
+                        .interpretation(intelligenceResponse.routeInterpretation())
+                        .build()
+        );
+
+        routeFound.setInterpretation(intelligenceResponse.routeInterpretation());
+        routeRepository.save(routeFound);
+
+        return this.mapRouteInterpretation(savedInterpretation);
+    }
+
+    public List<RouteInterpretationResponseDTO> listInterpretations(UUID routeId, CurrentUser currentUser) {
+        return routeInterpretationRepository.findAllByRouteIdAndPrefectureId(routeId, currentUser.prefectureId())
+                .stream()
+                .map(this::mapRouteInterpretation)
+                .toList();
+    }
+
+    private RouteInterpretationResponseDTO mapRouteInterpretation(RouteInterpretationEntity entity) {
+        return new RouteInterpretationResponseDTO(
+                entity.getId(),
+                entity.getRoute().getId(),
+                entity.getInterpretation(),
+                entity.getCreatedAt()
+        );
     }
 
     @Transactional
