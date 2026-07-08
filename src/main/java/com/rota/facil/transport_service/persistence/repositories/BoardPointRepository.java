@@ -13,6 +13,7 @@ public interface BoardPointRepository extends JpaRepository<BoardPointEntity, UU
     @Query("""
         SELECT b FROM BoardPointEntity b
         WHERE b.id IN (:boardPointsIds)
+        AND b.deleted = false
     """)
     Set<BoardPointEntity> findAllSetById(@Param("boardPointsIds") Set<UUID> boardPointsIds);
 
@@ -30,4 +31,12 @@ public interface BoardPointRepository extends JpaRepository<BoardPointEntity, UU
         WHERE t.id = :tripId
     """)
     List<BoardPointEntity> findAllByTripId(@Param("tripId") UUID tripId);
+
+
+    @Query("""
+        SELECT b FROM BoardPointEntity b
+        WHERE b.id IN (:boardPointsIds)
+        AND b.deleted = false
+    """)
+    List<BoardPointEntity> findAllActiveByIdIn(@Param("boardPointsIds") Iterable<UUID> boardPointsIds);
 }

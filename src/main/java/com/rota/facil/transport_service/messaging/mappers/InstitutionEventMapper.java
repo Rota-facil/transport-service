@@ -9,5 +9,6 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring", builder = @Builder(disableBuilder = true))
 public interface InstitutionEventMapper {
     @Mapping(target = "id", source = "institutionId")
+    @Mapping(target = "deleted", ignore = true)
     InstitutionEntity map(InstitutionEventReceive eventReceive);
 }

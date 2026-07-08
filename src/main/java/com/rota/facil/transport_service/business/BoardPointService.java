@@ -14,18 +14,22 @@ public class BoardPointService {
     private final BoardPointRepository boardPointRepository;
 
     public void register(BoardPointEntity boardPointEntity) {
+        boardPointEntity.setDeleted(false);
         boardPointEntity.setGeom();
         boardPointRepository.save(boardPointEntity);
     }
 
     public void update(BoardPointEntity boardPointEntity) {
         BoardPointEntity boardPointFound = this.fetchEntity(boardPointEntity.getId());
+        if (boardPointFound.getDeleted()) return;
         boardPointFound.update(boardPointEntity);
         boardPointRepository.save(boardPointFound);
     }
 
     public void delete(BoardPointEntity boardPointEntity) {
-        boardPointRepository.deleteById(boardPointEntity.getId());
+        BoardPointEntity boardPointFound = this.fetchEntity(boardPointEntity.getId());
+        boardPointFound.markAsDeleted();
+        boardPointRepository.save(boardPointFound);
     }
 
     private BoardPointEntity fetchEntity(UUID boardPointId) {

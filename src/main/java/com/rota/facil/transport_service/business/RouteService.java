@@ -64,7 +64,7 @@ public class RouteService {
 
         List<UUID> boardPointsIds = request.boardPoints().stream().map(CreateBoardPointRouteRequestDTO::boardPointId).toList();
 
-        List<BoardPointEntity> boardPointsFound = boardPointRepository.findAllById(boardPointsIds);
+        List<BoardPointEntity> boardPointsFound = boardPointRepository.findAllActiveByIdIn(boardPointsIds);
 
         Map<UUID, CreateBoardPointRouteRequestDTO> boardPointsRequestMap = request.boardPoints().stream().collect(Collectors.toMap(
                 CreateBoardPointRouteRequestDTO::boardPointId,
@@ -156,7 +156,7 @@ public class RouteService {
                 .orElseThrow(RouteNotFoundException::new);
         List<UUID> boardPointsIds = request.stream().map(CreateBoardPointRouteRequestDTO::boardPointId).toList();
 
-        List<BoardPointEntity> boardPointsFound = boardPointRepository.findAllById(boardPointsIds);
+        List<BoardPointEntity> boardPointsFound = boardPointRepository.findAllActiveByIdIn(boardPointsIds);
 
         Map<UUID, CreateBoardPointRouteRequestDTO> boardPointsRequestMap = request.stream().collect(Collectors.toMap(
                 CreateBoardPointRouteRequestDTO::boardPointId,
@@ -245,7 +245,7 @@ public class RouteService {
         if (!idsToAdd.isEmpty()) {
 
             List<InstitutionEntity> institutions =
-                    institutionRepository.findAllById(idsToAdd);
+                    institutionRepository.findAllActiveByIdIn(idsToAdd);
 
             if (institutions.size() != idsToAdd.size()) {
                 throw new InstitutionNotFoundException("Uma ou mais instituições não foram encontradas.");
@@ -312,7 +312,7 @@ public class RouteService {
         if (!idsToAdd.isEmpty()) {
 
             List<BoardPointEntity> boardPoints =
-                    boardPointRepository.findAllById(idsToAdd);
+                    boardPointRepository.findAllActiveByIdIn(idsToAdd);
 
             if (boardPoints.size() != idsToAdd.size()) {
                 throw new BoardPointNotFoundException("Um ou mais pontos de embarque não foram encontrados.");

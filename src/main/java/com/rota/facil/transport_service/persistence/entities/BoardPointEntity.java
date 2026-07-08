@@ -27,6 +27,9 @@ public class BoardPointEntity {
 
     private Double longitude;
 
+    @Builder.Default
+    private Boolean deleted = false;
+
     @Column(columnDefinition = "geography(POINT, 4326)")
     private Point geom;
 
@@ -55,5 +58,9 @@ public class BoardPointEntity {
     public void setGeom() {
         GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
         this.geom = geometryFactory.createPoint(new Coordinate(this.longitude, this.latitude));
+    }
+
+    public void markAsDeleted() {
+        this.deleted = true;
     }
 }

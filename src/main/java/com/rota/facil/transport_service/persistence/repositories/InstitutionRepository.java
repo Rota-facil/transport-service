@@ -16,6 +16,7 @@ public interface InstitutionRepository extends JpaRepository<InstitutionEntity, 
     @Query("""
         SELECT i FROM InstitutionEntity i
         WHERE i.id IN (:ids)
+        AND i.deleted = false
     """)
     Set<InstitutionEntity> findAllSetById(@Param("ids") Iterable<UUID> ids);
 
@@ -36,4 +37,12 @@ public interface InstitutionRepository extends JpaRepository<InstitutionEntity, 
         AND t IS NULL
     """)
     List<String> findAllInstitutionsNameToBeVisitedByRouteId(@Param("routeId") UUID routeId);
+
+
+    @Query("""
+        SELECT i FROM InstitutionEntity i
+        WHERE i.id IN (:ids)
+        AND i.deleted = false
+    """)
+    List<InstitutionEntity> findAllActiveByIdIn(@Param("ids") Iterable<UUID> ids);
 }

@@ -25,7 +25,8 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/trips")
 @RequiredArgsConstructor
-public class TripController {
+public class
+TripController {
     private final TripService tripService;
 
     @PostMapping("/process")
