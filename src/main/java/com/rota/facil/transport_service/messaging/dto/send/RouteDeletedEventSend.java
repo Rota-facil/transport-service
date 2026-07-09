@@ -2,8 +2,7 @@ package com.rota.facil.transport_service.messaging.dto.send;
 
 import java.util.UUID;
 
-public record BusEventSend(
-        UUID busId,
+public record RouteDeletedEventSend(
         UUID userId,
         String role,
         String userEmail,
@@ -11,7 +10,7 @@ public record BusEventSend(
         String actionType,
         String resourceName,
         UUID resourceId,
-        String plate,
-        Long capacity
+        UUID routeId,
+        String routeName
 ) {
 }

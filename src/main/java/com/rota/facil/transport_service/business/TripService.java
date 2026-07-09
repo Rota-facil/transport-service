@@ -178,7 +178,11 @@ public class TripService {
         bus.moveToOperation();
         bus = busRepository.save(bus);
 
-        return tripMapper.map(tripRepository.save(tripFound));
+        List<StudentPersistenceDTO> studentsInfo = tripUserRepository.findAllStudentsIdsAndEmailsByTripId(tripId);
+        TripEntity saved = tripRepository.save(tripFound);
+        tripEventProducer.runningTripEvent(saved, currentUser, studentsInfo);
+
+        return tripMapper.map(saved);
     }
 
     @Transactional

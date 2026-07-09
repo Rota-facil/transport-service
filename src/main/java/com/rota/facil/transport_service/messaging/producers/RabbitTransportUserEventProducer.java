@@ -1,9 +1,11 @@
 package com.rota.facil.transport_service.messaging.producers;
 
+import com.rota.facil.transport_service.domain.enums.ResourceName;
+import com.rota.facil.transport_service.domain.enums.TransportAuditAction;
 import com.rota.facil.transport_service.messaging.dto.send.FeedbackUserEventSend;
 import com.rota.facil.transport_service.messaging.dto.send.user.CompleteTripUserEventSend;
 import com.rota.facil.transport_service.messaging.dto.send.user.UpdateTripsUserEventSend;
-import com.rota.facil.transport_service.messaging.mappers.UserEventMapper;
+import com.rota.facil.transport_service.persistence.entities.FeedBackEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,8 +18,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class RabbitTransportUserEventProducer {
     private final RabbitTemplate rabbitTemplate;
-
-    private final UserEventMapper userEventMapper;
 
     @Value("${rabbitmq.transport.exchange}")
     private String transportExchange;
@@ -34,9 +34,25 @@ public class RabbitTransportUserEventProducer {
     @Value("${rabbitmq.user.trips.decreased.routing.key}")
     private String decreaseUserTripsRoutingKey;
 
-    public void feedbackUser(UUID userToEvaluateId, double newMediaNote) {
-        FeedbackUserEventSend feedbackUserEventSend = userEventMapper.map(userToEvaluateId, newMediaNote);
-        rabbitTemplate.convertAndSend(transportExchange, userFeedbackRoutingKey, feedbackUserEventSend);
+    public void feedbackUser(FeedBackEntity feedback, double newMediaNote) {
+        TransportAuditAction auditAction = TransportAuditAction.USER_FEEDBACK;
+        FeedbackUserEventSend eventSend = new FeedbackUserEventSend(
+                feedback.getReceiver().getId(),
+                newMediaNote,
+                feedback.getSender().getId(),
+                feedback.getSender().getEmail(),
+                feedback.getReceiver().getId(),
+                feedback.getReceiver().getEmail(),
+                feedback.getFeedback(),
+                feedback.getId(),
+                feedback.getSender().getEmail(),
+                feedback.getSender().getRole().name(),
+                auditAction.title(feedback.getSender().getEmail(), feedback.getReceiver().getEmail()),
+                auditAction.getActionType(),
+                ResourceName.FEEDBACK.name()
+        );
+
+        rabbitTemplate.convertAndSend(transportExchange, userFeedbackRoutingKey, eventSend);
     }
 
     public void completeTripUser(List<UUID> userIds) {

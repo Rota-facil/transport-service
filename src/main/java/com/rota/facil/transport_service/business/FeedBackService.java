@@ -63,13 +63,21 @@ public class FeedBackService {
         userToEvaluateFound.setScore(newMediaNote);
         userRepository.save(userToEvaluateFound);
 
-        userEventProducer.feedbackUser(userToEvaluateId, newMediaNote);
+        userEventProducer.feedbackUser(saved, newMediaNote);
         return feedBackMapper.map(saved);
     }
 
     private void verifyTypeUserToEvaluation(CurrentUser currentUser, UserEntity userToEvaluate) {
-        if (currentUser.isStudent() && userToEvaluate.isNotDriver()) throw new InvalidTypeUserException("Só é possível avaliar motoristas");
-        if (currentUser.isDriver() && userToEvaluate.isNotStudent()) throw new InvalidTypeUserException("Só é possível avaliar estudantes");
+        if (currentUser.isStudent()) {
+            if (userToEvaluate.isNotDriver()) throw new InvalidTypeUserException("Só é possível avaliar motoristas");
+            return;
+        }
+
+        if (currentUser.isDriver()) {
+            if (userToEvaluate.isNotStudent()) throw new InvalidTypeUserException("Só é possível avaliar estudantes");
+            return;
+        }
+
         throw new InvalidTypeUserException("Apenas alunos e motoristas podem avaliar outros alunos e motoristas");
     }
 }

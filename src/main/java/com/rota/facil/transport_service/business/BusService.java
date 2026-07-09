@@ -57,7 +57,9 @@ public class BusService {
         preSaved.setPrefectureId(currentUser.prefectureId());
         preSaved.setDriver(driverFound);
 
-        return busMapper.map(busRepository.save(preSaved));
+        BusEntity saved = busRepository.save(preSaved);
+        busEventProducer.createBusEvent(saved, currentUser);
+        return busMapper.map(saved);
     }
 
     @Transactional
@@ -76,7 +78,9 @@ public class BusService {
 
         updateBusDriver(busFound, request.driverId(), currentUser);
 
-        return busMapper.map(busRepository.save(busFound));
+        BusEntity saved = busRepository.save(busFound);
+        busEventProducer.updateBusEvent(saved, currentUser);
+        return busMapper.map(saved);
     }
 
     private void updateBusDriver(BusEntity busFound, UUID driverId, CurrentUser currentUser) {
@@ -140,7 +144,7 @@ public class BusService {
         routeRecurringRepository.deleteAllByBus_Id(busFound.getId());
         busFound.deactivate();
         BusEntity deletedBus = busRepository.save(busFound);
-        busEventProducer.deleteBusEvent(deletedBus);
+        busEventProducer.deleteBusEvent(deletedBus, currentUser);
     }
 
     public List<BusResponseDTO> list(CurrentUser currentUser) {

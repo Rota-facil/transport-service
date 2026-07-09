@@ -97,14 +97,18 @@ Esses eventos mantem copias locais de usuarios, instituicoes e pontos de embarqu
 Exchange `transport.events`:
 
 - `trip.created`
+- `trip.running`
 - `trip.cancelled`
 - `trip.deleted`
 - `route.created`
 - `route.updated`
 - `route.deleted`
+- `bus.created`
+- `bus.updated`
 - `bus.deleted`
+- `user.feedback`
 
-Eventos de cancelamento de viagem sao consumidos por `notification-service` e `audit-service`.
+Eventos de inicio e cancelamento de viagem sao consumidos por `notification-service` e `audit-service`. Eventos de remocao de viagem, CRUD de onibus e feedback sao consumidos por `audit-service`.
 
 ## Banco de dados
 
