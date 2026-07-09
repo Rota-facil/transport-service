@@ -55,20 +55,19 @@ public class RouteService {
         RouteEntity preSaved = routeMapper.map(request);
         preSaved.setInstitutions(institutionsFound);
         preSaved.setPrefectureId(currentUser.prefectureId());
+        preSaved.setRecurring(new ArrayList<>());
 
-        List<RouteRecurringEntity> recurringEntity = new ArrayList<>();
-
-        for (BusEntity bus : busListFound) {
-            recurringEntity.add(
-                    RouteRecurringEntity.builder()
-                            .route(preSaved)
-                            .bus(bus)
-                            .build()
-            );
-        }
-
-        preSaved.setRecurring(recurringEntity);
         RouteEntity saved = routeRepository.save(preSaved);
+
+        List<RouteRecurringEntity> recurringEntity = busListFound.stream()
+                .map(bus -> RouteRecurringEntity.builder()
+                        .route(saved)
+                        .bus(bus)
+                        .build())
+                .toList();
+
+        List<RouteRecurringEntity> savedRecurring = routeRecurringRepository.saveAll(recurringEntity);
+        saved.setRecurring(new ArrayList<>(savedRecurring));
 
         List<UUID> boardPointsIds = request.boardPoints().stream().map(CreateBoardPointRouteRequestDTO::boardPointId).toList();
 
@@ -186,6 +185,22 @@ public class RouteService {
                 entity.getInterpretation(),
                 entity.getCreatedAt()
         );
+    }
+
+    @Transactional
+    public void deleteInterpretation(UUID routeId, UUID interpretationId, CurrentUser currentUser) {
+        RouteInterpretationEntity interpretationFound = routeInterpretationRepository
+                .findByIdAndRouteIdAndPrefectureId(interpretationId, routeId, currentUser.prefectureId())
+                .orElseThrow(() -> new RouteNotFoundException("Análise da rota não foi encontrada"));
+
+        RouteEntity route = interpretationFound.getRoute();
+        routeInterpretationRepository.delete(interpretationFound);
+
+        List<RouteInterpretationEntity> remainingInterpretations =
+                routeInterpretationRepository.findAllByRouteIdAndPrefectureId(routeId, currentUser.prefectureId());
+
+        route.setInterpretation(remainingInterpretations.isEmpty() ? null : remainingInterpretations.getFirst().getInterpretation());
+        routeRepository.save(route);
     }
 
     @Transactional

@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -20,4 +21,19 @@ public interface RouteInterpretationRepository extends JpaRepository<RouteInterp
         ORDER BY ri.createdAt DESC
     """)
     List<RouteInterpretationEntity> findAllByRouteIdAndPrefectureId(@Param("routeId") UUID routeId, @Param("prefectureId") UUID prefectureId);
+
+    @Query("""
+        SELECT ri FROM RouteInterpretationEntity ri
+        INNER JOIN ri.route r
+        WHERE ri.id = :interpretationId
+        AND r.id = :routeId
+        AND r.prefectureId = :prefectureId
+        AND r.active = true
+    """)
+    Optional<RouteInterpretationEntity> findByIdAndRouteIdAndPrefectureId(
+            @Param("interpretationId") UUID interpretationId,
+            @Param("routeId") UUID routeId,
+            @Param("prefectureId") UUID prefectureId
+    );
 }
+

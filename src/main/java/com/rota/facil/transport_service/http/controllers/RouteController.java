@@ -53,6 +53,16 @@ public class RouteController {
         return ResponseEntity.ok(routeService.listInterpretations(routeId, currentUser));
     }
 
+    @DeleteMapping("/{routeId}/interpretations/{interpretationId}")
+    public ResponseEntity<Void> deleteInterpretation(
+            @PathVariable UUID routeId,
+            @PathVariable UUID interpretationId,
+            @AuthenticationPrincipal CurrentUser currentUser
+    ) {
+        routeService.deleteInterpretation(routeId, interpretationId, currentUser);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/{routeId}")
     public ResponseEntity<RouteResponseDTO> fetchRoute(
             @PathVariable UUID routeId,
