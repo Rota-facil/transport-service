@@ -43,6 +43,7 @@ public class RabbitTransportBusEventProducer {
         BusEventSend eventSend = new BusEventSend(
                 bus.getId(),
                 currentUser.userId(),
+                currentUser.prefectureId(),
                 currentUser.role(),
                 currentUser.email(),
                 auditAction.title(currentUser.email(), bus.getPlate()),

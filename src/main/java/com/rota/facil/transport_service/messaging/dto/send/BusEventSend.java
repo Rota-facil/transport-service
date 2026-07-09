@@ -5,6 +5,7 @@ import java.util.UUID;
 public record BusEventSend(
         UUID busId,
         UUID userId,
+        UUID prefectureId,
         String role,
         String userEmail,
         String actionTitle,

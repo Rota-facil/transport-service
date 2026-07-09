@@ -8,6 +8,7 @@ import java.util.UUID;
 
 public record RouteEventSend(
         UUID userId,
+        UUID prefectureId,
         Role role,
         String userEmail,
         String actionTitle,

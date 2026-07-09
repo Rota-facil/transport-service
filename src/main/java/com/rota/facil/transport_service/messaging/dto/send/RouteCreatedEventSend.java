@@ -4,6 +4,7 @@ import java.util.UUID;
 
 public record RouteCreatedEventSend(
         UUID userId,
+        UUID prefectureId,
         String role,
         String userEmail,
         String actionTitle,

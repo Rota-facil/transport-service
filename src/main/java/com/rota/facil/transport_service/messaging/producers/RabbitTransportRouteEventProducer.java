@@ -33,6 +33,7 @@ public class RabbitTransportRouteEventProducer {
         TransportAuditAction auditAction = TransportAuditAction.ROUTE_CREATED;
         RouteCreatedEventSend eventSend = new RouteCreatedEventSend(
                 currentUser.userId(),
+                currentUser.prefectureId(),
                 currentUser.role(),
                 currentUser.email(),
                 auditAction.title(currentUser.email(), createRoute.getName()),
@@ -50,6 +51,7 @@ public class RabbitTransportRouteEventProducer {
         TransportAuditAction auditAction = TransportAuditAction.ROUTE_UPDATED;
         RouteUpdatedEventSend eventSend = new RouteUpdatedEventSend(
                 currentUser.userId(),
+                currentUser.prefectureId(),
                 currentUser.role(),
                 currentUser.email(),
                 auditAction.title(currentUser.email(), updateRoute.getName()),
@@ -67,6 +69,7 @@ public class RabbitTransportRouteEventProducer {
         TransportAuditAction auditAction = TransportAuditAction.ROUTE_DELETED;
         RouteDeletedEventSend eventSend = new RouteDeletedEventSend(
                 currentUser.userId(),
+                currentUser.prefectureId(),
                 currentUser.role(),
                 currentUser.email(),
                 auditAction.title(currentUser.email(), deleteRoute.getName()),

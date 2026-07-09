@@ -4,6 +4,7 @@ import java.util.UUID;
 
 public record FeedbackUserEventSend(
         UUID userId,
+        UUID prefectureId,
         double note,
         UUID senderId,
         String sender,

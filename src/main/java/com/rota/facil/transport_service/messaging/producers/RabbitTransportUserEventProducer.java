@@ -38,6 +38,7 @@ public class RabbitTransportUserEventProducer {
         TransportAuditAction auditAction = TransportAuditAction.USER_FEEDBACK;
         FeedbackUserEventSend eventSend = new FeedbackUserEventSend(
                 feedback.getReceiver().getId(),
+                feedback.getReceiver().getPrefectureId(),
                 newMediaNote,
                 feedback.getSender().getId(),
                 feedback.getSender().getEmail(),
