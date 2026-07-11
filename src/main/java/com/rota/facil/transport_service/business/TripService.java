@@ -342,7 +342,7 @@ public class TripService {
 
 
     public List<SimpleTripUserResponseDTO> listStudents(UUID tripId, CurrentUser currentUser) {
-        return tripUserRepository.findAllByDriverIdAndTripId(currentUser.userId(), tripId)
+        return tripUserRepository.findAllByPrefectureIdAndTripId(currentUser.prefectureId(), tripId)
                 .stream()
                 .map(tripUserMapper::mapToSimple)
                 .toList();

@@ -12,6 +12,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -217,4 +218,13 @@ public interface TripUserRepository extends JpaRepository<TripUserEntity, UUID> 
         WHERE t.id = :tripId
     """)
     List<UUID> findAllUserIdsOfCompletedTripByTripId(@Param("tripId") UUID tripId);
+
+    @Query("""
+        SELECT tu FROM TripUserEntity tu
+        INNER JOIN tu.trip t
+        INNER JOIN t.bus b
+        WHERE t.id = :tripId
+        AND t.prefectureId = :prefectureId
+    """)
+    List<TripUserEntity> findAllByPrefectureIdAndTripId(@Param("prefectureId") UUID prefectureId, @Param("tripId") UUID tripId);
 }
