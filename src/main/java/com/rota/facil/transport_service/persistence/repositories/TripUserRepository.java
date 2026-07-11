@@ -81,7 +81,10 @@ public interface TripUserRepository extends JpaRepository<TripUserEntity, UUID> 
         INNER JOIN tu.trip t
         WHERE t.id = :tripId
         AND tu.going IS TRUE
-        AND tu.presence = com.rota.facil.transport_service.domain.enums.Presence.CHECKIN
+        AND tu.presence IN (
+                com.rota.facil.transport_service.domain.enums.Presence.CHECKIN,
+                com.rota.facil.transport_service.domain.enums.Presence.PENDING
+            )
     """)
     List<InstitutionEntity> findAllInstitutionsGoingByTripId(@Param("tripId") UUID tripId);
 
@@ -91,7 +94,10 @@ public interface TripUserRepository extends JpaRepository<TripUserEntity, UUID> 
         INNER JOIN tu.trip t
         WHERE t.id = :tripId
         AND tu.return_ IS TRUE
-        AND tu.presence = com.rota.facil.transport_service.domain.enums.Presence.CHECKIN
+        AND tu.presence IN (
+                com.rota.facil.transport_service.domain.enums.Presence.CHECKIN,
+                com.rota.facil.transport_service.domain.enums.Presence.PENDING
+            )
     """)
     List<InstitutionEntity> findAllInstitutionsReturnByTripId(@Param("tripId") UUID tripId);
 
@@ -101,7 +107,10 @@ public interface TripUserRepository extends JpaRepository<TripUserEntity, UUID> 
         INNER JOIN tu.trip t
         WHERE t.id = :tripId
         AND tu.going IS TRUE
-        AND tu.presence = com.rota.facil.transport_service.domain.enums.Presence.CHECKIN
+        AND tu.presence IN (
+                com.rota.facil.transport_service.domain.enums.Presence.PENDING,
+                com.rota.facil.transport_service.domain.enums.Presence.CHECKIN
+            )
     """)
     List<BoardPointEntity> findAllBoardPointsGoingByTripId(@Param("tripId") UUID tripId);
 
@@ -111,7 +120,10 @@ public interface TripUserRepository extends JpaRepository<TripUserEntity, UUID> 
         INNER JOIN tu.trip t
         WHERE t.id = :tripId
         AND tu.return_ IS TRUE
-        AND tu.presence = com.rota.facil.transport_service.domain.enums.Presence.CHECKIN
+        AND tu.presence IN (
+                com.rota.facil.transport_service.domain.enums.Presence.PENDING,
+                com.rota.facil.transport_service.domain.enums.Presence.CHECKIN
+            )
     """)
     List<BoardPointEntity> findAllBoardPointsReturnByTripId(@Param("tripId") UUID tripId);
 
