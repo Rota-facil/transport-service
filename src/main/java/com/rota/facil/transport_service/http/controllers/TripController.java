@@ -73,6 +73,14 @@ TripController {
         return ResponseEntity.ok(tripService.init(tripId, currentUser));
     }
 
+    @PostMapping("/{tripId}/return/init")
+    public ResponseEntity<TripResponseDTO> initReturnTrip(
+            @PathVariable UUID tripId,
+            @AuthenticationPrincipal CurrentUser currentUser
+    ) {
+        return ResponseEntity.ok(tripService.initReturn(tripId, currentUser));
+    }
+
     @PostMapping("/{tripId}/cancel")
     public ResponseEntity<TripResponseDTO> cancelTrip(
             @PathVariable UUID tripId,

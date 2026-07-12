@@ -42,7 +42,8 @@ Viagens:
 - `POST /transports/trips/{tripId}/join`: adiciona usuario a viagem.
 - `POST /transports/trips/{tripId}/exit`: remove usuario da viagem.
 - `POST /transports/trips/{tripId}/checkin`: registra check-in.
-- `POST /transports/trips/{tripId}/init`: inicia viagem.
+- `POST /transports/trips/{tripId}/init`: inicia a ida da viagem. Exige pelo menos um aluno cadastrado.
+- `POST /transports/trips/{tripId}/return/init`: inicia a volta após a finalização da ida.
 - `POST /transports/trips/{tripId}/cancel`: cancela viagem.
 - `GET /transports/trips`: lista viagens.
 - `GET /transports/trips/my-trips`: lista viagens de hoje do usuario autenticado.

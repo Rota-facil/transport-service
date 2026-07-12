@@ -150,7 +150,14 @@ public class TripService {
         TripEntity tripFound = tripRepository.findByIdAndDriverId(tripId, driverFound.getId())
                 .orElseThrow(TripNotFoundException::new);
 
-        if (tripStatusRepository.isTripInitOrCancelled(tripFound.getId())) throw new TripAlreadyStatedOrCancelledException();
+        if (!Progress.NOT_STARTED.equals(tripFound.getActualStatus())) {
+            throw new TripAlreadyStatedOrCancelledException("A ida só pode ser iniciada quando a viagem ainda não foi iniciada");
+        }
+
+        List<StudentPersistenceDTO> studentsInfo = tripUserRepository.findAllStudentsIdsAndEmailsByTripId(tripId);
+        if (studentsInfo.isEmpty()) {
+            throw new TripStatusAlreadyRegisteredException("Não é possível iniciar a ida sem alunos cadastrados na viagem");
+        }
 
         Delay delay = this.getDelay(tripFound);
 
@@ -178,11 +185,35 @@ public class TripService {
         bus.moveToOperation();
         bus = busRepository.save(bus);
 
-        List<StudentPersistenceDTO> studentsInfo = tripUserRepository.findAllStudentsIdsAndEmailsByTripId(tripId);
         TripEntity saved = tripRepository.save(tripFound);
         tripEventProducer.runningTripEvent(saved, currentUser, studentsInfo);
 
         return tripMapper.map(saved);
+    }
+
+    @Transactional
+    public TripResponseDTO initReturn(UUID tripId, CurrentUser currentUser) {
+        UserEntity driverFound = userRepository.findDriverById(currentUser.userId())
+                .orElseThrow(UserNotFoundException::new);
+
+        TripEntity tripFound = tripRepository.findByIdAndDriverId(tripId, driverFound.getId())
+                .orElseThrow(TripNotFoundException::new);
+
+        if (!Progress.STARTED_FINISHED.equals(tripFound.getActualStatus())) {
+            throw new TripStartedStillNotFinishYetException("A volta só pode ser iniciada quando a ida estiver finalizada");
+        }
+
+        TripStatusEntity newStatus = TripStatusEntity.builder()
+                .trip(tripFound)
+                .delay(this.getReturnStartDelay(tripFound))
+                .progress(Progress.RETURN_STARTED)
+                .description(Progress.RETURN_STARTED.getTitle())
+                .build();
+
+        tripFound.getTripStatus().add(newStatus);
+        tripFound.setActualStatus(Progress.RETURN_STARTED);
+
+        return tripMapper.map(tripRepository.save(tripFound));
     }
 
     @Transactional
@@ -267,8 +298,10 @@ public class TripService {
                         .build()
                 );
 
-        boolean isGoing = this.inferGoingOrReturn(arrivalDate.toLocalTime(), routeFound.getGoing(), routeFound.getGoingFinish());
-        boolean isReturn = this.inferGoingOrReturn(arrivalDate.toLocalTime(), routeFound.getReturn_(), routeFound.getReturnFinish());
+        boolean isGoing = !tripStatusRepository.existsByTripIdAndProgress(trip.getId(), Progress.STARTED_FINISHED)
+                && this.inferGoingOrReturn(arrivalDate.toLocalTime(), routeFound.getGoing(), routeFound.getGoingFinish());
+        boolean isReturn = tripStatusRepository.existsByTripIdAndProgress(trip.getId(), Progress.RETURN_STARTED)
+                && this.inferGoingOrReturn(arrivalDate.toLocalTime(), routeFound.getReturn_(), routeFound.getReturnFinish());
 
         if (isGoing) {
             if (Boolean.TRUE.equals(newBoardPointVisitedFound.getGoing())
@@ -324,8 +357,10 @@ public class TripService {
                             .build()
                 );
 
-        boolean isGoing = this.inferGoingOrReturn(arrivalDate.toLocalTime(), routeFound.getGoing(), routeFound.getGoingFinish());
-        boolean isReturn = this.inferGoingOrReturn(arrivalDate.toLocalTime(), routeFound.getReturn_(), routeFound.getReturnFinish());
+        boolean isGoing = !tripStatusRepository.existsByTripIdAndProgress(trip.getId(), Progress.STARTED_FINISHED)
+                && this.inferGoingOrReturn(arrivalDate.toLocalTime(), routeFound.getGoing(), routeFound.getGoingFinish());
+        boolean isReturn = tripStatusRepository.existsByTripIdAndProgress(trip.getId(), Progress.RETURN_STARTED)
+                && this.inferGoingOrReturn(arrivalDate.toLocalTime(), routeFound.getReturn_(), routeFound.getReturnFinish());
 
 
         if (isGoing) {
@@ -353,9 +388,6 @@ public class TripService {
             newInstitutionVisitedFound.setReturn_(true);
             newInstitutionVisitedFound = institutionVisitedRepository.save(newInstitutionVisitedFound);
             this.setStatusTrip(trip, Progress.INSTITUTION_ARRIVAL, institution.getName(), arrivalDate, routeFound);
-            if (tripStatusRepository.existsByTripIdAndProgress(trip.getId(), Progress.RETURN_STARTED)) return;
-
-            this.setStatusTrip(trip, Progress.RETURN_STARTED, arrivalDate, routeFound);
         }
 
     }
@@ -402,6 +434,15 @@ public class TripService {
 
     private void setAbsences(TripEntity trip, Progress tripProgress) {
         tripUserRepository.setAbsentUsersOnTheTrip(trip.getId(), tripProgress);
+    }
+
+    private Delay getReturnStartDelay(TripEntity tripFound) {
+        LocalTime expectedReturnStart = tripFound.getRoute().getReturn_();
+        LocalTime actualReturnStart = LocalTime.now();
+
+        if (actualReturnStart.equals(expectedReturnStart)) return Delay.PUNCTUAL;
+        if (actualReturnStart.isBefore(expectedReturnStart)) return Delay.EARLY;
+        return Delay.LATE;
     }
 
     private Delay getDelay(TripEntity tripFound) {

@@ -29,6 +29,7 @@ public interface TripRepository extends JpaRepository<TripEntity, UUID> {
         WHERE t.id = :tripId
         AND d.id = :driverId
     """)
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<TripEntity> findByIdAndDriverId(@Param("tripId") UUID tripId, @Param("driverId") UUID driverId);
 
     @Query("""
