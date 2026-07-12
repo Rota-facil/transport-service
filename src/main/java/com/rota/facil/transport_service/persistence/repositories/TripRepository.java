@@ -183,5 +183,22 @@ public interface TripRepository extends JpaRepository<TripEntity, UUID> {
     """)
     Long countWaitingTodayByPrefectureId(@Param("prefectureId") UUID prefectureId);
 
+
+    @Query("""
+        SELECT t FROM TripEntity t
+        JOIN FETCH t.route r
+        JOIN FETCH t.bus b
+        LEFT JOIN FETCH b.driver d
+        WHERE t.prefectureId = :prefectureId
+        AND t.actualStatus = com.rota.facil.transport_service.domain.enums.Progress.CANCELLED
+        AND t.createdAt BETWEEN :startDate AND :endDate
+        ORDER BY t.createdAt DESC
+    """)
+    List<TripEntity> findCancelledForReport(
+            @Param("prefectureId") UUID prefectureId,
+            @Param("startDate") java.time.LocalDate startDate,
+            @Param("endDate") java.time.LocalDate endDate
+    );
+
 }
 

@@ -227,4 +227,22 @@ public interface TripUserRepository extends JpaRepository<TripUserEntity, UUID> 
         AND t.prefectureId = :prefectureId
     """)
     List<TripUserEntity> findAllByPrefectureIdAndTripId(@Param("prefectureId") UUID prefectureId, @Param("tripId") UUID tripId);
+
+    @Query("""
+        SELECT tu FROM TripUserEntity tu
+        JOIN FETCH tu.user u
+        JOIN FETCH tu.trip t
+        JOIN FETCH t.route r
+        JOIN FETCH tu.institution i
+        JOIN FETCH tu.boardPoint b
+        WHERE t.prefectureId = :prefectureId
+        AND tu.presence = com.rota.facil.transport_service.domain.enums.Presence.ABSENT
+        AND t.createdAt BETWEEN :startDate AND :endDate
+        ORDER BY t.createdAt DESC, u.name ASC
+    """)
+    List<TripUserEntity> findAbsencesForReport(
+            @Param("prefectureId") UUID prefectureId,
+            @Param("startDate") java.time.LocalDate startDate,
+            @Param("endDate") java.time.LocalDate endDate
+    );
 }

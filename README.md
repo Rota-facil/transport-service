@@ -38,6 +38,12 @@ Rotas:
 
 Viagens:
 
+Relatórios administrativos:
+
+- `GET /transports/reports/student-absences?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD`: gera PDF de faltas.
+- `GET /transports/reports/cancelled-trips?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD`: gera PDF de viagens canceladas.
+
+
 - `POST /transports/trips/process?tripId={uuid}&latitude={lat}&longitude={lng}`: processa posicao/status de viagem.
 - `POST /transports/trips/{tripId}/join`: adiciona usuario a viagem.
 - `POST /transports/trips/{tripId}/exit`: remove usuario da viagem.
