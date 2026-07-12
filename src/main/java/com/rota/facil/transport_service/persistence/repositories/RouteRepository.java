@@ -80,7 +80,7 @@ public interface RouteRepository extends JpaRepository<RouteEntity, UUID> {
         SELECT i FROM RouteEntity r
         INNER JOIN r.institutions i
         WHERE r.id = :routeId
-        ORDER BY i.geom
+        ORDER BY i.latitude ASC, i.longitude ASC, i.id ASC
     """)
     List<InstitutionEntity> findAllInstitutionsById(@Param("routeId") UUID routeId);
 
@@ -89,7 +89,7 @@ public interface RouteRepository extends JpaRepository<RouteEntity, UUID> {
         INNER JOIN r.boardPoints br
         INNER JOIN br.boardPoint b
         WHERE r.id = :routeId
-        ORDER BY b.geom
+        ORDER BY b.latitude ASC, b.longitude ASC, b.id ASC
     """)
     List<BoardPointEntity> findAllBoardPointsById(@Param("routeId") UUID routeId);
 
