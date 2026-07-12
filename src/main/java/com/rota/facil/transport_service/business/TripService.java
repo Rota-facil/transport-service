@@ -418,18 +418,41 @@ public class TripService {
 
     @Transactional
     public void exitTrip(UUID tripId, CurrentUser currentUser) {
-        TripEntity tripFound = this.fetchEntity(tripId, currentUser.prefectureId());
+        TripEntity tripFound = tripRepository.findByIdForUpdate(tripId)
+                .filter(trip -> Objects.equals(trip.getPrefectureId(), currentUser.prefectureId()))
+                .orElseThrow(TripNotFoundException::new);
 
-        TripUserEntity tripUserFound = tripUserRepository.findNotStartedAndNotFinishedByTripIdAndUserId(tripId, currentUser.userId())
+        TripUserEntity tripUserFound = tripUserRepository.findByTripIdAndUserId(tripId, currentUser.userId())
                 .orElseThrow(TripUserNotFoundException::new);
 
-        tripFound.decreaseStudents();
-        tripRepository.save(tripFound);
-        tripUserRepository.delete(tripUserFound);
+        if (Progress.NOT_STARTED.equals(tripFound.getActualStatus())) {
+            tripFound.decreaseStudents();
+            tripRepository.save(tripFound);
+            tripUserRepository.delete(tripUserFound);
 
-        List<UUID> userIds = List.of(currentUser.userId());
-        userRepository.decreaseTripsByUserIds(userIds);
-        transportUserEventProducer.decreaseTripsUser(userIds);
+            List<UUID> userIds = List.of(currentUser.userId());
+            userRepository.decreaseTripsByUserIds(userIds);
+            transportUserEventProducer.decreaseTripsUser(userIds);
+            return;
+        }
+
+        if (Progress.CANCELLED.equals(tripFound.getActualStatus())
+                || Progress.RETURN_FINISHED.equals(tripFound.getActualStatus())) {
+            throw new TripStatusAlreadyRegisteredException("Não é possível sair de uma viagem cancelada ou finalizada");
+        }
+
+        if (Presence.ABSENT.equals(tripUserFound.getPresence())) return;
+
+        tripUserFound.setPresence(Presence.ABSENT);
+        tripUserRepository.save(tripUserFound);
+
+        if (tripStatusRepository.existsByTripIdAndProgress(tripId, Progress.STARTED_FINISHED)) {
+            this.registerIgnoredInstitutionsForReturnTrip(tripFound);
+            this.registerIgnoredBoardPointsForReturnTrip(tripFound);
+        } else {
+            this.registerIgnoredInstitutionsForGoingTrip(tripFound);
+            this.registerIgnoredBoardPointsForGoingTrip(tripFound);
+        }
     }
 
     private void setAbsences(TripEntity trip, Progress tripProgress) {
