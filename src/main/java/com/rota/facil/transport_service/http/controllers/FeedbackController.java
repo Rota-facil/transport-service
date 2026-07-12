@@ -4,6 +4,7 @@ import com.rota.facil.transport_service.business.FeedBackService;
 import com.rota.facil.transport_service.http.dto.request.user.CurrentUser;
 import com.rota.facil.transport_service.http.dto.request.user.EvaluateUserRequestDTO;
 import com.rota.facil.transport_service.http.dto.response.user.EvaluateUserResponseDTO;
+import com.rota.facil.transport_service.http.dto.response.user.ReceivedFeedbackResponseDTO;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @SecurityRequirement(name = "bearerAuth")
@@ -19,6 +21,14 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class FeedbackController {
     private final FeedBackService feedBackService;
+
+    @GetMapping("/users/{userId}")
+    public ResponseEntity<List<ReceivedFeedbackResponseDTO>> listReceivedFeedbacks(
+            @AuthenticationPrincipal CurrentUser currentUser,
+            @PathVariable UUID userId
+    ) {
+        return ResponseEntity.ok(feedBackService.listReceived(currentUser, userId));
+    }
 
     @PostMapping("/{userId}/evaluate")
     public ResponseEntity<EvaluateUserResponseDTO> evaluateUser(

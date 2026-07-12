@@ -58,6 +58,8 @@ Relatórios administrativos:
 
 Feedback:
 
+- `GET /transports/feedbacks/users/{userId}`: lista feedbacks recebidos pelo usuário para ADMIN/SUPERUSER da mesma prefeitura.
+
 - `POST /transports/users/{userId}/evaluate`: avalia outro usuario.
 
 Infra:

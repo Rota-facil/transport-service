@@ -7,6 +7,7 @@ import com.rota.facil.transport_service.domain.exceptions.UserOfTripNotFoundExce
 import com.rota.facil.transport_service.http.dto.request.user.CurrentUser;
 import com.rota.facil.transport_service.http.dto.request.user.EvaluateUserRequestDTO;
 import com.rota.facil.transport_service.http.dto.response.user.EvaluateUserResponseDTO;
+import com.rota.facil.transport_service.http.dto.response.user.ReceivedFeedbackResponseDTO;
 import com.rota.facil.transport_service.messaging.producers.RabbitTransportUserEventProducer;
 import com.rota.facil.transport_service.persistence.entities.FeedBackEntity;
 import com.rota.facil.transport_service.persistence.entities.TripUserEntity;
@@ -20,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -65,6 +67,21 @@ public class FeedBackService {
 
         userEventProducer.feedbackUser(saved, newMediaNote);
         return feedBackMapper.map(saved);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ReceivedFeedbackResponseDTO> listReceived(CurrentUser currentUser, UUID userId) {
+        return feedBackRepository.findAllReceivedByUserAndPrefecture(userId, currentUser.prefectureId())
+                .stream()
+                .map(feedback -> new ReceivedFeedbackResponseDTO(
+                        feedback.getId(),
+                        feedback.getSender().getName(),
+                        feedback.getSender().getEmail(),
+                        feedback.getNote(),
+                        feedback.getFeedback(),
+                        feedback.getCreatedAt()
+                ))
+                .toList();
     }
 
     private void verifyTypeUserToEvaluation(CurrentUser currentUser, UserEntity userToEvaluate) {

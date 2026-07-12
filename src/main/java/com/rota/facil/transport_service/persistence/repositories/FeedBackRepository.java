@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.UUID;
 
 @Repository
@@ -16,4 +17,17 @@ public interface FeedBackRepository extends JpaRepository<FeedBackEntity, UUID> 
         WHERE r.id = :userToEvaluateId
     """)
     double calculateMediaNoteByUserId(@Param("userToEvaluateId") UUID userToEvaluateId);
+
+    @Query("""
+        SELECT f FROM FeedBackEntity f
+        JOIN FETCH f.sender s
+        JOIN FETCH f.receiver r
+        WHERE r.id = :userId
+        AND r.prefectureId = :prefectureId
+        ORDER BY f.createdAt DESC
+    """)
+    List<FeedBackEntity> findAllReceivedByUserAndPrefecture(
+            @Param("userId") UUID userId,
+            @Param("prefectureId") UUID prefectureId
+    );
 }
