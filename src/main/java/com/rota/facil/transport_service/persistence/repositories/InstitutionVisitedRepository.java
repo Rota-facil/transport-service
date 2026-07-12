@@ -41,8 +41,8 @@ public interface InstitutionVisitedRepository extends JpaRepository<InstitutionV
         SELECT iv FROM InstitutionVisitedEntity iv
         INNER JOIN iv.trip t
         WHERE t.id = :tripId
-        AND iv.going = :going
-        AND iv.return_ = :return_
+        AND (:going = FALSE OR iv.going IS TRUE)
+        AND (:return_ = FALSE OR iv.return_ IS TRUE)
     """)
     List<InstitutionVisitedEntity> findByTripIdAndGoingAndReturn(@Param("tripId") UUID tripId, @Param("going") boolean going, @Param("return_") boolean return_);
 

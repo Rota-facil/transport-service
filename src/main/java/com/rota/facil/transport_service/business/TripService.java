@@ -236,10 +236,16 @@ public class TripService {
 
     @Transactional
     public void processTrip(UUID tripId, double latitude, double longitude) {
-        TripEntity tripFound = tripRepository.findById(tripId)
+        TripEntity tripFound = tripRepository.findByIdForUpdate(tripId)
                 .orElseThrow(TripNotFoundException::new);
 
         tripFound.updateCoordinates(latitude, longitude);
+
+        if (!tripStatusRepository.existsByTripIdAndProgress(tripId, Progress.STARTED)
+                || tripStatusRepository.existsByTripIdAndProgress(tripId, Progress.CANCELLED)
+                || tripStatusRepository.existsByTripIdAndProgress(tripId, Progress.RETURN_FINISHED)) {
+            return;
+        }
 
         Optional<InstitutionEntity> institutionExisting = routeRepository.findInstitutionByTripIdAndCoordinates(tripId, longitude, latitude);
         Optional<BoardPointEntity> boardPointExisting = routeRepository.findBoardPointByTripIdAndCoordinates(tripId, longitude, latitude);
@@ -265,6 +271,9 @@ public class TripService {
         boolean isReturn = this.inferGoingOrReturn(arrivalDate.toLocalTime(), routeFound.getReturn_(), routeFound.getReturnFinish());
 
         if (isGoing) {
+            if (Boolean.TRUE.equals(newBoardPointVisitedFound.getGoing())
+                    || trip.getIgnoredBoardPoints().contains(boardPoint)) return;
+
             newBoardPointVisitedFound.setGoing(true);
             boardPointVisitedRepository.save(newBoardPointVisitedFound);
             this.setStatusTrip(trip, Progress.BOARD_POINT_ARRIVAL, boardPoint.getName(), arrivalDate, routeFound);
@@ -272,6 +281,9 @@ public class TripService {
         }
 
         if (isReturn) {
+            if (Boolean.TRUE.equals(newBoardPointVisitedFound.getReturn_())
+                    || trip.getIgnoredBoardPoints().contains(boardPoint)) return;
+
             newBoardPointVisitedFound.setReturn_(true);
             boardPointVisitedRepository.save(newBoardPointVisitedFound);
 
@@ -317,6 +329,9 @@ public class TripService {
 
 
         if (isGoing) {
+            if (Boolean.TRUE.equals(newInstitutionVisitedFound.getGoing())
+                    || trip.getIgnoredInstitutions().contains(institution)) return;
+
             newInstitutionVisitedFound.setGoing(true);
             newInstitutionVisitedFound = institutionVisitedRepository.save(newInstitutionVisitedFound);
             this.setStatusTrip(trip, Progress.INSTITUTION_ARRIVAL, institution.getName(), arrivalDate, routeFound);
@@ -324,12 +339,17 @@ public class TripService {
 
             if (this.allInstitutionsAndBoardPointsWhereVisitedInGoing(routeFound, trip)) {
                 this.setStatusTrip(trip, Progress.STARTED_FINISHED, arrivalDate, routeFound);
-                this.registerIgnoredInstitutionsForReturnTrip(trip);
                 this.setAbsences(trip, Progress.STARTED_FINISHED);
+                this.registerIgnoredInstitutionsForReturnTrip(trip);
+                this.registerIgnoredBoardPointsForReturnTrip(trip);
             }
+            return;
         }
 
         if (isReturn) {
+            if (Boolean.TRUE.equals(newInstitutionVisitedFound.getReturn_())
+                    || trip.getIgnoredInstitutions().contains(institution)) return;
+
             newInstitutionVisitedFound.setReturn_(true);
             newInstitutionVisitedFound = institutionVisitedRepository.save(newInstitutionVisitedFound);
             this.setStatusTrip(trip, Progress.INSTITUTION_ARRIVAL, institution.getName(), arrivalDate, routeFound);
@@ -440,6 +460,11 @@ public class TripService {
     }
 
     @Transactional
+    protected void registerIgnoredBoardPointsForReturnTrip(TripEntity tripFound) {
+        this.registerIgnoredBoardPointsForTrip(tripFound, false);
+    }
+
+    @Transactional
     protected void registerIgnoredBoardPointsForTrip(TripEntity tripFound, boolean isGoing) {
         List<BoardPointEntity> allBoardPointsToBeVisitedInRoute = new ArrayList<>(boardPointRepository.findAllByTripId(tripFound.getId()));
         List<BoardPointEntity> allBoardPointsShouldActuallyBeVisited;
@@ -468,19 +493,27 @@ public class TripService {
     }
 
     private boolean allInstitutionsAndBoardPointsWhereVisitedInReturn(RouteEntity route, TripEntity trip) {
-        return this.allInstitutionsWhereVisited(route, trip, true, true) && this.allBoardPointsWhereVisited(route, trip, true, true);
+        return this.allInstitutionsWhereVisited(route, trip, false, true) && this.allBoardPointsWhereVisited(route, trip, false, true);
     }
 
     private boolean allInstitutionsWhereVisited(RouteEntity route, TripEntity trip, boolean going, boolean return_) {
         List<InstitutionVisitedEntity> institutionsVisited  = institutionVisitedRepository.findByTripIdAndGoingAndReturn(trip.getId(), going, return_);
         Set<InstitutionEntity> institutionsToBeVisited = this.fetchInstitutionsToBeVisited(route, trip);
-        return (institutionsToBeVisited.size() == institutionsVisited.size());
+        Set<InstitutionEntity> visitedRequiredInstitutions = institutionsVisited.stream()
+                .map(InstitutionVisitedEntity::getInstitution)
+                .filter(institutionsToBeVisited::contains)
+                .collect(java.util.stream.Collectors.toSet());
+        return visitedRequiredInstitutions.containsAll(institutionsToBeVisited);
     }
 
     private boolean allBoardPointsWhereVisited(RouteEntity route, TripEntity trip, boolean going, boolean return_) {
         Set<BoardPointEntity> boardPointsToBeVisited = this.fetchBoardPointToBeVisited(route, trip);
         List<BoardPointVisitedEntity> boardPointsVisited = boardPointVisitedRepository.findReturnByTripId(trip.getId(), going, return_);
-        return (boardPointsToBeVisited.size() == boardPointsVisited.size());
+        Set<BoardPointEntity> visitedRequiredBoardPoints = boardPointsVisited.stream()
+                .map(BoardPointVisitedEntity::getBoardPoint)
+                .filter(boardPointsToBeVisited::contains)
+                .collect(java.util.stream.Collectors.toSet());
+        return visitedRequiredBoardPoints.containsAll(boardPointsToBeVisited);
     }
 
     private void setStatusTrip(TripEntity trip, Progress progress, LocalDateTime arrivalDate, RouteEntity route) {
