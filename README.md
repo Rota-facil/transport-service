@@ -1,149 +1,100 @@
 # transport-service
 
-Servico central do dominio de transporte. Gerencia onibus, rotas, viagens, passageiros, check-ins, recorrencia de rotas, feedbacks e integracao com um servico externo de inteligencia.
-
-## Para que serve
-
-- Registrar e listar onibus.
-- Registrar rotas com instituicoes, pontos de embarque, dias da semana e onibus recorrentes.
-- Criar viagens recorrentes por agendamento.
-- Permitir entrada, saida e check-in de estudantes em viagens.
-- Iniciar, cancelar e processar viagens.
-- Listar viagens por perfil do usuario autenticado.
-- Gerar interpretacao de rota e mapa de calor por integracao HTTP.
-- Publicar eventos para auditoria, notificacao e arquivos.
+Serviço operacional de transporte do Rota Fácil. Gerencia ônibus, rotas, viagens, passageiros, presença, geolocalização, feedback, métricas, relatórios e integração com inteligência.
 
 ## Porta e base path
 
-- Aplicacao: `transport-service`
 - Porta: `8085`
 - Context path: `/transports`
 - Via gateway: `http://localhost:8080/transports`
 
-## Endpoints principais
+## Endpoints
 
-Onibus:
+Ônibus:
 
-- `POST /transports/bus/register`: cadastra onibus. Exige `ADMIN`.
-- `GET /transports/bus`: lista onibus.
-- `GET /transports/bus/{busId}`: busca onibus.
+- `POST /transports/bus/register`
+- `GET /transports/bus` e `GET /transports/bus/{busId}`
+- `PUT /transports/bus/{busId}` e `DELETE /transports/bus/{busId}`
 
 Rotas:
 
-- `POST /transports/routes/register`: cadastra rota. Exige `ADMIN`.
-- `GET /transports/routes`: lista rotas conforme usuario/prefeitura.
-- `GET /transports/routes/{routeId}`: busca rota.
-- `POST /transports/routes/{routeId}/interpreter`: solicita interpretacao da rota ao intelligence service.
-- `POST /transports/routes/{routeId}/board-point/heat-map`: gera mapa de calor de pontos de embarque.
+- `POST /transports/routes/register`
+- `GET /transports/routes`, `GET /transports/routes/simple`, `GET /transports/routes/{routeId}`
+- `PUT /transports/routes/{routeId}`, `DELETE /transports/routes/{routeId}`
+- `POST /transports/routes/{routeId}/interpreter`
+- `GET /transports/routes/{routeId}/interpretations`
+- `DELETE /transports/routes/{routeId}/interpretations/{interpretationId}`
+- `POST /transports/routes/{routeId}/board-point/heat-map`
 
 Viagens:
 
-Relatórios administrativos:
+- `POST /transports/trips/process?tripId={uuid}&latitude={lat}&longitude={lng}`
+- `POST /transports/trips/{tripId}/join`, `/exit` e `/checkin`
+- `POST /transports/trips/{tripId}/init`: inicia a ida.
+- `POST /transports/trips/{tripId}/return/init`: inicia a volta.
+- `POST /transports/trips/{tripId}/cancel`
+- `GET /transports/trips`, `GET /transports/trips/my-trips`
+- `GET /transports/trips/active`: lista todas as viagens ativas de hoje da prefeitura autenticada, sem paginacao.
+- `GET /transports/trips/{tripId}`, `GET /transports/trips/{tripId}/students`
 
-- `GET /transports/reports/student-absences?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD`: gera PDF de faltas.
-- `GET /transports/reports/cancelled-trips?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD`: gera PDF de viagens canceladas.
+Feedbacks:
 
+- `GET /transports/feedbacks/users/{userId}`: lista feedbacks, notas, remetente e data recebidos pelo usuário da mesma prefeitura; `ADMIN/SUPERUSER`.
+- `POST /transports/feedbacks/{userId}/evaluate`
+- `POST /transports/feedbacks/trips/{tripId}/users/{userId}`
 
-- `POST /transports/trips/process?tripId={uuid}&latitude={lat}&longitude={lng}`: processa posicao/status de viagem.
-- `POST /transports/trips/{tripId}/join`: adiciona usuario a viagem.
-- `POST /transports/trips/{tripId}/exit`: remove usuario da viagem.
-- `POST /transports/trips/{tripId}/checkin`: registra check-in.
-- `POST /transports/trips/{tripId}/init`: inicia a ida da viagem. Exige pelo menos um aluno cadastrado.
-- `POST /transports/trips/{tripId}/return/init`: inicia a volta após a finalização da ida.
-- `POST /transports/trips/{tripId}/cancel`: cancela viagem.
-- `GET /transports/trips`: lista viagens.
-- `GET /transports/trips/my-trips`: lista viagens de hoje do usuario autenticado.
-- `GET /transports/trips/{tripId}`: busca viagem.
-- `GET /transports/trips/{tripId}/students`: lista estudantes da viagem.
+Administração e análise:
 
-Feedback:
+- `GET /transports/metrics`
+- `GET /transports/institutions/route-counts`
+- `GET /transports/users/drivers`, `GET /transports/users/drivers/me`
+- `PATCH /transports/users/drivers/{driverId}/bus/change`
+- `GET /transports/reports/student-absences?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD`
+- `GET /transports/reports/cancelled-trips?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD`
 
-- `GET /transports/feedbacks/users/{userId}`: lista feedbacks recebidos pelo usuário para ADMIN/SUPERUSER da mesma prefeitura.
+Os relatórios retornam `application/pdf` como download e são filtrados pela prefeitura autenticada.
 
-- `POST /transports/users/{userId}/evaluate`: avalia outro usuario.
+Infra: `GET /transports/health-check`, `/transports/v3/api-docs`, `/transports/swagger-ui.html`.
 
-Infra:
+## Ciclo da viagem
 
-- `GET /transports/health-check`
-- `/transports/v3/api-docs`
-- `/transports/swagger-ui.html`
+- A ida só pode ser iniciada quando a viagem está `NOT_STARTED` e possui ao menos um aluno.
+- A volta só pode ser iniciada quando a ida está `STARTED_FINISHED`.
+- O envio de geolocalização não inicia automaticamente a volta.
+- Antes do início, sair da viagem remove o `TripUser` e reduz o contador. Depois do início, mantém o vínculo e marca `ABSENT`, preservando dados para relatórios.
+- O processamento geográfico usa lock pessimista, ignora viagens não iniciadas/terminais e verifica status já registrados antes de inserir. Assim, posições repetidas enquanto o ônibus permanece parado não duplicam chegadas.
+- Instituições e pontos esperados são avaliados por fase (ida/volta); ausências e destinos ignorados são recalculados quando necessário.
+- Instituições e pontos retornados nas rotas usam ordenação explícita por latitude, longitude e UUID para uma resposta determinística.
 
 ## Agendamento
 
-`TripSchedule` executa diariamente as `03:00` no fuso `America/Sao_Paulo` e cria viagens para rotas recorrentes do dia.
+`TripSchedule` roda diariamente às `03:00` em `America/Sao_Paulo` e cria viagens para rotas recorrentes do dia.
 
 ## Intelligence service
 
-O servico chama `INTELLIGENCE_SERVICE_BASE_URL`, default `http://localhost:8000`, com base path `/intelligence`:
+Usa `INTELLIGENCE_SERVICE_BASE_URL`, padrão `http://localhost:8000`, para interpretação de rota e mapa de calor. É a exceção atual ao padrão de integração assíncrona entre serviços.
 
-- `GET /intelligence`
-- `POST /intelligence/route/interpretation`
-- `POST /intelligence/route/heat-map`
+## Eventos
 
-## Eventos consumidos
+Consome de `auth.events`: `user.created`, `user.updated`, `driver.admin.updated`, `user.deleted`, `user.deactivate`.
 
-Exchange `auth.events`:
+Consome de `places.events`: CRUD de `institution.*` e `boarding.*`.
 
-- `user.created`
-- `user.updated`
-- `driver.admin.updated`
-- `user.deleted`
-- `user.deactivate`
+Publica em `transport.events`: `trip.created`, `trip.running`, `trip.cancelled`, `trip.deleted`, `trip.completed`, `user.trips.increased`, `user.trips.decreased`, `user.feedback`, CRUD de `route.*` e CRUD de `bus.*`.
 
-Exchange `places.events`:
+## Persistência
 
-- `institution.created`
-- `institution.updated`
-- `institution.deleted`
-- `boarding.created`
-- `boarding.updated`
-- `boarding.deleted`
-
-Esses eventos mantem copias locais de usuarios, instituicoes e pontos de embarque.
-
-## Eventos publicados
-
-Exchange `transport.events`:
-
-- `trip.created`
-- `trip.running`
-- `trip.cancelled`
-- `trip.deleted`
-- `route.created`
-- `route.updated`
-- `route.deleted`
-- `bus.created`
-- `bus.updated`
-- `bus.deleted`
-- `user.feedback`
-
-Eventos de inicio e cancelamento de viagem sao consumidos por `notification-service` e `audit-service`. Eventos de remocao de viagem, CRUD de onibus e feedback sao consumidos por `audit-service`.
-
-## Banco de dados
-
-- Default: `jdbc:postgresql://localhost:5435/transport_database`
-- Usuario default: `rota-facil`
-- Senha default: `admin`
-- Usa `hibernate-spatial` para dados geograficos.
+- Banco PostGIS: `jdbc:postgresql://localhost:5435/transport_database`
+- Usuário padrão: `rota-facil`
 - Migrations: `src/main/resources/db/migration`
+- Hibernate: `ddl-auto=validate`
+- PDFs: Apache PDFBox, gerados em memória; os endpoints não exigem nova tabela.
 
 ## Como rodar
-
-Pre-requisitos:
-
-- Java 21.
-- PostgreSQL com banco `transport_database`.
-- Eureka.
-- RabbitMQ.
-- `auth-service` e `places-service` em funcionamento para popular dados via eventos.
-
-Comando:
 
 ```bash
 cd transport-service
 ./mvnw spring-boot:run
 ```
 
-## Especializacao
-
-Este servico concentra as regras operacionais de transporte. Ele nao e a fonte principal de usuarios ou lugares; recebe esses dados por eventos e os usa para operar viagens e rotas.
+Requer Java 21, PostgreSQL/PostGIS, Eureka e RabbitMQ. `auth-service` e `places-service` precisam publicar eventos para popular as cópias locais.

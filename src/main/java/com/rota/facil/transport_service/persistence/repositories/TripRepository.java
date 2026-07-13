@@ -86,16 +86,51 @@ public interface TripRepository extends JpaRepository<TripEntity, UUID> {
         INNER JOIN t.bus b
         INNER JOIN b.driver d
         WHERE d.id = :driverId
+        AND t.prefectureId = :prefectureId
         AND t.createdAt = CURRENT_DATE
+        ORDER BY t.name ASC, t.id ASC
     """)
-    List<TripEntity> findAllTodayByDriverId(@Param("driverId") UUID driverId);
+    List<TripEntity> findAllTodayByDriverIdAndPrefectureId(
+            @Param("driverId") UUID driverId,
+            @Param("prefectureId") UUID prefectureId
+    );
+
+    @Query(
+        value = """
+            SELECT t FROM TripEntity t
+            WHERE t.prefectureId = :prefectureId
+            AND t.createdAt = CURRENT_DATE
+            ORDER BY CASE
+                WHEN t.actualStatus NOT IN (
+                    com.rota.facil.transport_service.domain.enums.Progress.NOT_STARTED,
+                    com.rota.facil.transport_service.domain.enums.Progress.CANCELLED,
+                    com.rota.facil.transport_service.domain.enums.Progress.RETURN_FINISHED
+                ) THEN 0
+                ELSE 1
+            END,
+            t.name ASC,
+            t.id ASC
+        """,
+        countQuery = """
+            SELECT COUNT(t) FROM TripEntity t
+            WHERE t.prefectureId = :prefectureId
+            AND t.createdAt = CURRENT_DATE
+        """
+    )
+    Page<TripEntity> findAllByPrefectureIdToday(@Param("prefectureId") UUID prefectureId, Pageable pageable);
 
     @Query("""
         SELECT t FROM TripEntity t
         WHERE t.prefectureId = :prefectureId
         AND t.createdAt = CURRENT_DATE
+        AND t.actualStatus NOT IN (
+            com.rota.facil.transport_service.domain.enums.Progress.NOT_STARTED,
+            com.rota.facil.transport_service.domain.enums.Progress.CANCELLED,
+            com.rota.facil.transport_service.domain.enums.Progress.RETURN_FINISHED
+        )
+        ORDER BY t.name ASC, t.id ASC
     """)
-    Page<TripEntity> findAllByPrefectureIdToday(@Param("prefectureId") UUID prefectureId, Pageable pageable);
+    List<TripEntity> findAllActiveByPrefectureIdToday(@Param("prefectureId") UUID prefectureId);
 
     @Query("""
         SELECT COUNT(t) FROM TripEntity t

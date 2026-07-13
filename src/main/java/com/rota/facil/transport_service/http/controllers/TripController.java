@@ -90,6 +90,13 @@ TripController {
         return ResponseEntity.ok(tripService.cancel(tripId, currentUser, request));
     }
 
+    @GetMapping("/active")
+    public ResponseEntity<List<TripResponseDTO>> listActiveTrips(
+            @AuthenticationPrincipal CurrentUser currentUser
+    ) {
+        return ResponseEntity.ok(tripService.listActive(currentUser));
+    }
+
     @GetMapping("/{tripId}")
     public ResponseEntity<TripResponseDTO> fetchTrip(
             @PathVariable UUID tripId,

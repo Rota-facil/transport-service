@@ -64,9 +64,14 @@ public interface TripUserRepository extends JpaRepository<TripUserEntity, UUID> 
         INNER JOIN tu.user u
         INNER JOIN tu.trip t
         WHERE u.id = :passengerId
+        AND t.prefectureId = :prefectureId
         AND t.createdAt = CURRENT_DATE
+        ORDER BY t.name ASC, t.id ASC
     """)
-    List<TripEntity> findAllTodayByPassengerId(@Param("passengerId") UUID passengerId);
+    List<TripEntity> findAllTodayByPassengerIdAndPrefectureId(
+            @Param("passengerId") UUID passengerId,
+            @Param("prefectureId") UUID prefectureId
+    );
 
     @Query("""
         SELECT i FROM TripUserEntity tu

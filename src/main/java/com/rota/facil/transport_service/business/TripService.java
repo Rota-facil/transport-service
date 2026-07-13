@@ -90,6 +90,13 @@ public class TripService {
                 .map(tripMapper::map);
     }
 
+    public List<TripResponseDTO> listActive(CurrentUser currentUser) {
+        return tripRepository.findAllActiveByPrefectureIdToday(currentUser.prefectureId())
+                .stream()
+                .map(tripMapper::map)
+                .toList();
+    }
+
 
     @Transactional
     public TripUserResponseDTO join(UUID tripId, CurrentUser user, JoinUserInTrip request) {
@@ -257,8 +264,12 @@ public class TripService {
     public List<TripResponseDTO> myTripsToday(CurrentUser user) {
         List<TripEntity> trips = new ArrayList<>();
 
-        if (Role.DRIVER.equals(Role.valueOf(user.role()))) trips.addAll(tripRepository.findAllTodayByDriverId(user.userId()));
-        if (Role.STUDENT.equals(Role.valueOf(user.role()))) trips.addAll(tripUserRepository.findAllTodayByPassengerId(user.userId()));
+        if (Role.DRIVER.equals(Role.valueOf(user.role()))) {
+            trips.addAll(tripRepository.findAllTodayByDriverIdAndPrefectureId(user.userId(), user.prefectureId()));
+        }
+        if (Role.STUDENT.equals(Role.valueOf(user.role()))) {
+            trips.addAll(tripUserRepository.findAllTodayByPassengerIdAndPrefectureId(user.userId(), user.prefectureId()));
+        }
 
         return trips.stream()
                 .map(tripMapper::map)
