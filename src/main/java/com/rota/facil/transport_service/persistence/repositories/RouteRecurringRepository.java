@@ -12,6 +12,8 @@ import java.util.UUID;
 
 @Repository
 public interface RouteRecurringRepository extends JpaRepository<RouteRecurringEntity, UUID> {
+    boolean existsByRoute_IdAndBus_Id(UUID routeId, UUID busId);
+
     @Query("""
         SELECT rr FROM RouteRecurringEntity rr
         INNER JOIN rr.route r

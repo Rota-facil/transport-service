@@ -2,6 +2,7 @@ package com.rota.facil.transport_service.http.controllers;
 
 import com.rota.facil.transport_service.business.TripService;
 import com.rota.facil.transport_service.http.dto.request.trip.CancelTripRequestDTO;
+import com.rota.facil.transport_service.http.dto.request.trip.CreateTripRequestDTO;
 import com.rota.facil.transport_service.http.dto.request.trip.JoinUserInTrip;
 import com.rota.facil.transport_service.http.dto.response.tripUser.SimpleTripUserResponseDTO;
 import com.rota.facil.transport_service.http.dto.response.tripUser.TripUserResponseDTO;
@@ -28,6 +29,14 @@ import java.util.UUID;
 public class
 TripController {
     private final TripService tripService;
+
+    @PostMapping("/register")
+    public ResponseEntity<TripResponseDTO> registerTrip(
+            @Valid @RequestBody CreateTripRequestDTO request,
+            @AuthenticationPrincipal CurrentUser currentUser
+    ) {
+        return ResponseEntity.ok(tripService.register(request, currentUser));
+    }
 
     @PostMapping("/process")
     public ResponseEntity<Void> processTrip(

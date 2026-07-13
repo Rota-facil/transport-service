@@ -28,6 +28,7 @@ Rotas:
 
 Viagens:
 
+- `POST /transports/trips/register`: cria manualmente uma viagem de hoje para uma rota e um ônibus já associado; `ADMIN`.
 - `POST /transports/trips/process?tripId={uuid}&latitude={lat}&longitude={lng}`
 - `POST /transports/trips/{tripId}/join`, `/exit` e `/checkin`
 - `POST /transports/trips/{tripId}/init`: inicia a ida.
@@ -69,6 +70,8 @@ Infra: `GET /transports/health-check`, `/transports/v3/api-docs`, `/transports/s
 ## Agendamento
 
 `TripSchedule` roda diariamente às `03:00` em `America/Sao_Paulo` e cria viagens para rotas recorrentes do dia.
+
+Administradores também podem criar uma viagem manual para testes ou necessidades operacionais. O backend exige que rota e ônibus estejam ativos, pertençam à prefeitura autenticada, que o ônibus tenha motorista e esteja associado à rota. A viagem é criada para o dia atual em `NOT_STARTED`.
 
 ## Intelligence service
 

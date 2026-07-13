@@ -43,6 +43,7 @@ public class TripService {
     private final TripRepository tripRepository;
     private final BusRepository busRepository;
     private final RouteRepository routeRepository;
+    private final RouteRecurringRepository routeRecurringRepository;
     private final TripStatusRepository tripStatusRepository;
     private final TripUserRepository tripUserRepository;
     private final BoardPointRepository boardPointRepository;
@@ -60,22 +61,26 @@ public class TripService {
         BusEntity busFound = busRepository.findByIdAndPrefectureId(request.busId(), currentUser.prefectureId())
                 .orElseThrow(BusNotFoundException::new);
 
-        RouteEntity routeFound = routeRepository.findById(request.routeId())
+        RouteEntity routeFound = routeRepository.findByIdAndPrefectureId(request.routeId(), currentUser.prefectureId())
                 .orElseThrow(RouteNotFoundException::new);
 
         if (busFound.getDriver() == null) throw new BusWithoutDriverException("Não é possível criar viagem com ônibus sem motorista vinculado");
+        if (!routeRecurringRepository.existsByRoute_IdAndBus_Id(routeFound.getId(), busFound.getId())) {
+            throw new BusNotAssociatedWithRouteException();
+        }
 
-        TripEntity preSaved = tripMapper.map(request);
+        TripEntity trip = TripEntity.builder()
+                .name(routeFound.getName())
+                .bus(busFound)
+                .route(routeFound)
+                .prefectureId(currentUser.prefectureId())
+                .actualStatus(Progress.NOT_STARTED)
+                .tripStatus(new ArrayList<>())
+                .build();
+        trip.getTripStatus().add(TripStatusEntity.builder().trip(trip).build());
 
-        preSaved.setBus(busFound);
-        preSaved.setRoute(routeFound);
-
-        TripEntity saved = tripRepository.save(preSaved);
-
+        TripEntity saved = tripRepository.save(trip);
         tripEventProducer.createTripEvent(saved);
-
-        saved.setTripStatus(new ArrayList<>());
-        saved.getTripStatus().add(tripStatusRepository.save(TripStatusEntity.builder().trip(saved).build()));
 
         return tripMapper.map(saved);
     }

@@ -24,6 +24,11 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler
+    public ResponseEntity<Object> busNotAssociatedWithRouteException(BusNotAssociatedWithRouteException ex, HttpServletRequest request) {
+        return this.resolveExceptions(HttpStatus.BAD_REQUEST, request, ex);
+    }
+
+    @ExceptionHandler
     public ResponseEntity<Object> busInOperationExceptions(BusInOperationExceptions ex, HttpServletRequest request) {
         return this.resolveExceptions(HttpStatus.BAD_REQUEST, request, ex);
     }
