@@ -76,6 +76,8 @@ public class TripService {
                 .prefectureId(currentUser.prefectureId())
                 .actualStatus(Progress.NOT_STARTED)
                 .tripStatus(new ArrayList<>())
+                .ignoredInstitutions(new HashSet<>())
+                .ignoredBoardPoints(new HashSet<>())
                 .build();
         trip.getTripStatus().add(TripStatusEntity.builder().trip(trip).build());
 

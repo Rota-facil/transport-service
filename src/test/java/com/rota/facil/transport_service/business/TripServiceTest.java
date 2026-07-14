@@ -90,6 +90,8 @@ class TripServiceTest {
         assertEquals(Progress.NOT_STARTED, createdTrip.getActualStatus());
         assertEquals(1, createdTrip.getTripStatus().size());
         assertEquals(Progress.NOT_STARTED, createdTrip.getTripStatus().getFirst().getProgress());
+        assertTrue(createdTrip.getIgnoredInstitutions().isEmpty());
+        assertTrue(createdTrip.getIgnoredBoardPoints().isEmpty());
         verify(tripEventProducer).createTripEvent(any(TripEntity.class));
         verify(tripMapper).map(any(TripEntity.class));
     }
